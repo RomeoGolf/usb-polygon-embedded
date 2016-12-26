@@ -251,15 +251,15 @@ static bool SCSI_Command_Send_Diagnostic(void)
 	}
 
 	/* Check to see if all attached Dataflash ICs are functional */
-	if (!(DataflashManager_CheckDataflashOperation()))
-	{
+/*	if (!(DataflashManager_CheckDataflashOperation()))*/
+/*	{*/
 		/* Update SENSE key with a hardware error condition and return command fail */
-		SCSI_SET_SENSE(SCSI_SENSE_KEY_HARDWARE_ERROR,
-		               SCSI_ASENSE_NO_ADDITIONAL_INFORMATION,
-		               SCSI_ASENSEQ_NO_QUALIFIER);
-
-		return false;
-	}
+/*		SCSI_SET_SENSE(SCSI_SENSE_KEY_HARDWARE_ERROR,*/
+/*		               SCSI_ASENSE_NO_ADDITIONAL_INFORMATION,*/
+/*		               SCSI_ASENSEQ_NO_QUALIFIER);*/
+/**/
+/*		return false;*/
+/*	}*/
 
 	/* Succeed the command and update the bytes transferred counter */
 	CommandBlock.DataTransferLength = 0;
@@ -311,10 +311,10 @@ static bool SCSI_Command_ReadWrite_10(const bool IsDataRead)
 	#endif
 
 	/* Determine if the packet is a READ (10) or WRITE (10) command, call appropriate function */
-	if (IsDataRead == DATA_READ)
-	  DataflashManager_ReadBlocks(BlockAddress, TotalBlocks);
-	else
-	  DataflashManager_WriteBlocks(BlockAddress, TotalBlocks);
+/*	if (IsDataRead == DATA_READ)*/
+/*	  DataflashManager_ReadBlocks(BlockAddress, TotalBlocks);*/
+/*	else*/
+/*	  DataflashManager_WriteBlocks(BlockAddress, TotalBlocks);*/
 
 	/* Update the bytes transferred counter and succeed the command */
 	CommandBlock.DataTransferLength -= ((uint32_t)TotalBlocks * VIRTUAL_MEMORY_BLOCK_SIZE);

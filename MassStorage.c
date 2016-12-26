@@ -54,7 +54,7 @@ int main(void)
 {
 	SetupHardware();
 
-	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
+/*	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);*/
 	GlobalInterruptEnable();
 
 	for (;;)
@@ -87,26 +87,26 @@ void SetupHardware(void)
 #endif
 
 	/* Hardware Initialization */
-	LEDs_Init();
-	Dataflash_Init();
+/*	LEDs_Init();*/
+/*	Dataflash_Init();*/
 	USB_Init();
 
 	/* Check if the Dataflash is working, abort if not */
-	if (!(DataflashManager_CheckDataflashOperation()))
-	{
-		LEDs_SetAllLEDs(LEDMASK_USB_ERROR);
-		for(;;);
-	}
+/*	if (!(DataflashManager_CheckDataflashOperation()))*/
+/*	{*/
+/*		LEDs_SetAllLEDs(LEDMASK_USB_ERROR);*/
+/*		for(;;);*/
+/*	}*/
 
 	/* Clear Dataflash sector protections, if enabled */
-	DataflashManager_ResetDataflashProtections();
+/*	DataflashManager_ResetDataflashProtections();*/
 }
 
 /** Event handler for the USB_Connect event. This indicates that the device is enumerating via the status LEDs. */
 void EVENT_USB_Device_Connect(void)
 {
 	/* Indicate USB enumerating */
-	LEDs_SetAllLEDs(LEDMASK_USB_ENUMERATING);
+/*	LEDs_SetAllLEDs(LEDMASK_USB_ENUMERATING);*/
 
 	/* Reset the MSReset flag upon connection */
 	IsMassStoreReset = false;
@@ -118,7 +118,7 @@ void EVENT_USB_Device_Connect(void)
 void EVENT_USB_Device_Disconnect(void)
 {
 	/* Indicate USB not ready */
-	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
+/*	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);*/
 }
 
 /** Event handler for the USB_ConfigurationChanged event. This is fired when the host set the current configuration
@@ -133,7 +133,7 @@ void EVENT_USB_Device_ConfigurationChanged(void)
 	ConfigSuccess &= Endpoint_ConfigureEndpoint(MASS_STORAGE_OUT_EPADDR, EP_TYPE_BULK, MASS_STORAGE_IO_EPSIZE, 1);
 
 	/* Indicate endpoint configuration success or failure */
-	LEDs_SetAllLEDs(ConfigSuccess ? LEDMASK_USB_READY : LEDMASK_USB_ERROR);
+/*	LEDs_SetAllLEDs(ConfigSuccess ? LEDMASK_USB_READY : LEDMASK_USB_ERROR);*/
 }
 
 /** Event handler for the USB_ControlRequest event. This is used to catch and process control requests sent to
@@ -185,7 +185,7 @@ void MassStorage_Task(void)
 	if (ReadInCommandBlock())
 	{
 		/* Indicate busy */
-		LEDs_SetAllLEDs(LEDMASK_USB_BUSY);
+/*		LEDs_SetAllLEDs(LEDMASK_USB_BUSY);*/
 
 		/* Check direction of command, select Data IN endpoint if data is from the device */
 		if (CommandBlock.Flags & MS_COMMAND_DIR_DATA_IN)
@@ -208,7 +208,7 @@ void MassStorage_Task(void)
 		ReturnCommandStatus();
 
 		/* Indicate ready */
-		LEDs_SetAllLEDs(LEDMASK_USB_READY);
+/*		LEDs_SetAllLEDs(LEDMASK_USB_READY);*/
 	}
 
 	/* Check if a Mass Storage Reset occurred */

@@ -11,14 +11,15 @@
 
 # Run "make help" for target help.
 
-MCU          = at90usb1287
+MCU          = at90usb162 #at90usb1287
 ARCH         = AVR8
-BOARD        = USBKEY
+BOARD        = NONE #USBKEY
 F_CPU        = 8000000
 F_USB        = $(F_CPU)
 OPTIMIZATION = s
 TARGET       = MassStorage
-SRC          = $(TARGET).c Descriptors.c Lib/DataflashManager.c Lib/SCSI.c $(LUFA_SRC_USB)
+#SRC          = $(TARGET).c Descriptors.c Lib/DataflashManager.c Lib/SCSI.c $(LUFA_SRC_USB)
+SRC          = $(TARGET).c Descriptors.c Lib/SCSI.c $(LUFA_SRC_USB)
 LUFA_PATH    = ../LUFA
 CC_FLAGS     = -DUSE_LUFA_CONFIG_HEADER -IConfig/
 LD_FLAGS     =
