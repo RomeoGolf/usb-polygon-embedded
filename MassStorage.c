@@ -46,7 +46,7 @@ MS_CommandStatusWrapper_t CommandStatus = { .Signature = MS_CSW_SIGNATURE };
 /** Flag to asynchronously abort any in-progress data transfers upon the reception of a mass storage reset command. */
 volatile bool IsMassStoreReset = false;
 
-
+unsigned char cnt = 0;			// просто счетчик
 /** Main program entry point. This routine configures the hardware required by the application, then
  *  enters a loop to run the application tasks in sequence.
  */
@@ -57,11 +57,79 @@ int main(void)
 /*	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);*/
 	GlobalInterruptEnable();
 
+    PORTD = 0x00;    // начальное значение - все нули
+    DDRD = 0xFF;     // все линии порта на вывод
+    PORTC = 0x00;    // без "подтяжки" (есть внешняя)
+    DDRC = 0x00;     // все линии порта на ввод
+
+    unsigned char cnt_bt = 0;     // счетчик нажатий на кнопки
+    unsigned char mode_out = 0;   // режим вывода
+    unsigned char bt_now = 0;     // состояние кнопок
+    unsigned char bt_old = 0;     // состояние кнопок в прошлый раз
+
+    /* запуск таймера 0 на период ~0.01 с */
+    /* (защита от дребезга) */
+    TCCR0B = 4;  /* 1 тик = 0.000032 с */
+    TCNT0 = 0;   /* 256 раз ~ 0.008192 c  */
+
+    /* запуск таймера 1 на период 0.5 с */
+    /* (счетчик с полусекундной задержкой) */
+    TCCR1B = 4;              /* 1 тик = 0.000032 с */
+    TCNT1 = 65536 - 15625;
+    /* разрешение прерываний таймера 1*/
+    /*TIMSK1 = (1 << TOIE1);*/
 	for (;;)
 	{
 		MassStorage_Task();
 		USB_USBTask();
+		
+		/* проверка срабатывания таймера без прерываний по флагу */
+        if ((TIFR1 & 1) == 1) {
+            TCNT1 = 65536 - 15625;  /* перезапуск таймера 1 */
+            TIFR1 = 1;              /* сброс флага таймера 1 */
+            cnt++;                  /* инкремент контрольного счетчика по таймеру */
+        }
+
+        /* обработка действий по срабатыванию таймера 0 */
+        if ((TIFR0 & 1) == 1) {
+            TCNT0 = 0;  /* перезапуск таймера 0 */
+            TIFR0 = 1;  /* сброс флага срабатывания таймера 0 */
+
+            /* cnt++;*/     // инкремент счетчика - чтобы что-то изменялось
+            bt_now = PINC;                  // считывание порта с кнопками
+            if (bt_now != bt_old) {         // если состояние порта изменилось
+                if ((bt_now & 0x30) == 0) { // если нажаты сразу две верхние кнопки на разрядах 3 и 4
+                    mode_out++;             // циклически изменить режим отображения,
+                    mode_out = mode_out & 3;// которых всего 4 - 0, 1, 2 и 3 (2 разряда по маске)
+                } else {                    // в противном случае
+                    if ((bt_now & 0x10) == 0) {cnt_bt++;}  // верхняя кнопка увеличивает счет нажатий
+                    if ((bt_now & 0x20) == 0) {cnt_bt--;}  // а вторая сверху - уменьшает
+                }
+                bt_old = bt_now;            // и сохраняем состояние порта для следующей проверки
+            }
+
+            switch (mode_out) {
+                case 0 :
+                    PORTD = cnt;    // просто счетчик
+                    break;
+                case 1 :
+                     PORTD = bt_now;            // состояние кнопок
+                    break;
+                case 2 :
+                    PORTD = cnt_bt;  // счетчик нажатий
+                    break;
+                default:
+                    PORTD = 0x55;    // просто константа
+            }
+        }
 	}
+}
+
+/* обработчик прерывания таймера, если разрешено, для проверки */
+ISR (TIMER1_OVF_vect)
+{
+    TCNT1 = 65536-15625;    // перезапуск таймера
+    cnt++;                  // инкремент контрольного счетчика
 }
 
 /** Configures the board hardware and chip peripherals for the demo's functionality. */
