@@ -311,10 +311,10 @@ static bool SCSI_Command_ReadWrite_10(const bool IsDataRead)
 	#endif
 
 	/* Determine if the packet is a READ (10) or WRITE (10) command, call appropriate function */
-/*	if (IsDataRead == DATA_READ)*/
-/*	  DataflashManager_ReadBlocks(BlockAddress, TotalBlocks);*/
-/*	else*/
-/*	  DataflashManager_WriteBlocks(BlockAddress, TotalBlocks);*/
+	if (IsDataRead == DATA_READ)
+	  ReadBlocks(BlockAddress, TotalBlocks);
+	else
+	  WriteBlocks(BlockAddress, TotalBlocks);
 
 	/* Update the bytes transferred counter and succeed the command */
 	CommandBlock.DataTransferLength -= ((uint32_t)TotalBlocks * VIRTUAL_MEMORY_BLOCK_SIZE);
@@ -342,3 +342,11 @@ static bool SCSI_Command_ModeSense_6(void)
 	return true;
 }
 
+void WriteBlocks(const uint32_t BlockAddress,
+                                  uint16_t TotalBlocks)
+{
+}
+void ReadBlocks(const uint32_t BlockAddress,
+                                 uint16_t TotalBlocks)
+{
+}

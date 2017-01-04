@@ -45,7 +45,7 @@
 		#include "Descriptors.h"
 
 		#include "Lib/SCSI.h"
-		#include "Lib/DataflashManager.h"
+//		#include "Lib/DataflashManager.h"
 		#include "Config/AppConfig.h"
 
 		#include <LUFA/Drivers/USB/USB.h>
