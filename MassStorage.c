@@ -47,6 +47,9 @@ MS_CommandStatusWrapper_t CommandStatus = { .Signature = MS_CSW_SIGNATURE };
 volatile bool IsMassStoreReset = false;
 
 unsigned char cnt = 0;			// просто счетчик
+uint8_t data_PC;
+uint8_t data_device;
+
 /** Main program entry point. This routine configures the hardware required by the application, then
  *  enters a loop to run the application tasks in sequence.
  */
@@ -108,6 +111,8 @@ int main(void)
                 bt_old = bt_now;            // и сохраняем состояние порта для следующей проверки
             }
 
+			data_device = cnt_bt;
+
             switch (mode_out) {
                 case 0 :
                     PORTD = cnt;    // просто счетчик
@@ -119,7 +124,8 @@ int main(void)
                     PORTD = cnt_bt;  // счетчик нажатий
                     break;
                 default:
-                    PORTD = 0x55;    // просто константа
+                    PORTD = data_PC;
+
             }
         }
 	}

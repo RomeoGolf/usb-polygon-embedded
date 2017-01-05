@@ -188,6 +188,10 @@
 		                                  uint16_t TotalBlocks);
 		void ReadBlocks(const uint32_t BlockAddress,
 		                                 uint16_t TotalBlocks);
+
+	/* variables */
+		extern uint8_t data_PC;
+		extern uint8_t data_device;
 /* ------------------------------------ */
 
 #endif
