@@ -106,6 +106,7 @@ bool SCSI_DecodeSCSICommand(void)
 			CommandSuccess = SCSI_Command_Send_Diagnostic();
 			break;
 		case SCSI_CMD_WRITE_10:
+		case 0xC1:
 			CommandSuccess = SCSI_Command_ReadWrite_10(DATA_WRITE);
 			break;
 		case SCSI_CMD_READ_10:
