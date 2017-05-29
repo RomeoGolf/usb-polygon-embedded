@@ -47,7 +47,7 @@ void process_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBloc
 uint8_t * read_mbr(uint8_t * data_buf, uint8_t BytesInBlockDiv16);
 uint8_t * read_boot_sect(uint8_t * data_buf, uint8_t BytesInBlockDiv16);
 uint8_t * read_fat(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlockDiv16);
-/*uint8_t * read_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlockDiv16);*/
+uint8_t * read_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlockDiv16);
 
 /** Writes blocks (OS blocks, not Dataflash pages) to the storage medium, the board Dataflash IC(s), from
  *  the pre-selected data OUT endpoint. This routine reads in OS sized blocks from the endpoint and writes
@@ -237,10 +237,10 @@ uint8_t * prepare_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesI
     if ((BlockAddress >= (FAT2_SECTOR)) && (BlockAddress < (ROOT_SECTOR))) {
 		pdata = read_fat(data_buf, BlockAddress - FAT2_SECTOR, BytesInBlockDiv16);
 		return pdata;
-/*    } else*/
-/*    if (BlockAddress >= (ROOT_SECTOR)) {*/
-/*		pdata = read_data(data_buf, BlockAddress, BytesInBlockDiv16);*/
-/*		return pdata;*/
+	} else
+	if (BlockAddress >= (ROOT_SECTOR)) {
+		pdata = read_data(data_buf, BlockAddress, BytesInBlockDiv16);
+		return pdata;
     } else {
         memset(data_buf, 0, 16);
 		return data_buf;
@@ -255,28 +255,12 @@ void process_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBloc
 }
 
 uint8_t * read_mbr(uint8_t * data_buf, uint8_t BytesInBlockDiv16){
-    memset(data_buf, 0, 16);
-    if (BytesInBlockDiv16 == 27) {
-	/* status=0, start_head=0*/
-    }
+    memset(data_buf, 0, 16);	/* по умолчанию нули */
     if (BytesInBlockDiv16 == 28) {
-	/* start_cyl=0 */
 	data_buf[2] = 0x0C; /* type FAT32 with LBA */
-	/* end_head=0, end_cyl=0 */
 	data_buf[6] = BOOT_SECTOR; /* start LBA */
-	data_buf[7] = 0x00; /* start LBA */
-	data_buf[8] = 0x00; /* start LBA */
-	data_buf[9] = 0x00; /* start LBA */
-	/* ? */
-	data_buf[10] = 0x00; /* num of sect */
 	data_buf[11] = 0x10; /* num of sect */
-	data_buf[12] = 0x00; /* num of sect */
-	data_buf[13] = 0x00; /* num of sect */
     }
-/*    if (BytesInBlockDiv16 == 29) {*/ /* part 2, 3 */
-/*    }*/
-/*    if (BytesInBlockDiv16 == 30) {*/ /* part 3, 4 */
-/*    }*/
     if (BytesInBlockDiv16 == 31) {     /* part 4, signature */
 	data_buf[14] = 0x55;
 	data_buf[15] = 0xAA;
@@ -287,11 +271,9 @@ uint8_t * read_mbr(uint8_t * data_buf, uint8_t BytesInBlockDiv16){
 uint8_t * read_boot_sect(uint8_t * data_buf, uint8_t BytesInBlockDiv16){
     memset(data_buf, 0, 16);
     if (BytesInBlockDiv16 == 0) {
-	/* jmp & signature */
 	data_buf[0] = 0xEB;
 	data_buf[1] = 0x58;
 	data_buf[2] = 0x90;
-	/* OS abbrev.  4D 53 44 4F 53 35 2E 30 MSDOS5.0;*/
 	data_buf[3] = 'M';
 	data_buf[4] = 'S';
 	data_buf[5] = 'D';
@@ -300,96 +282,28 @@ uint8_t * read_boot_sect(uint8_t * data_buf, uint8_t BytesInBlockDiv16){
 	data_buf[8] = '5';
 	data_buf[9] = '.';
 	data_buf[10] = '0';
-	/* bytes per sect 512 */
-/*	data_buf[11] = 0x00; */
 	data_buf[12] = 0x02;
-	/* sect per claster */
 	data_buf[13] = 0x08;
-	/* reserved sect*/
 	data_buf[14] = 0x01;
-/*	data_buf[15] = 0x00; */
     }
-
     if (BytesInBlockDiv16 == 1) {
-	/* num of FAT tables */
 	data_buf[0] = 0x02;
-	/* root_dir_max_cnt = 0; */
-/*	data_buf[1] = 0x00; */
-/*	data_buf[2] = 0x00; */
-	/* tot_sectors = 0 (in 0x20) */
-/*	data_buf[3] = 0; */
-/*	data_buf[4] = 0'; */
-	/* media_desc */
-	data_buf[5] =  0xF8;
-	/* sec_per_fat_fat16 = 0 */
-/*	data_buf[6] = 0; */
-/*	data_buf[7] = 0; */
-	/* sec_per_track = 63 */
+	data_buf[5] = 0xF8;
 	data_buf[8] = 63;
-/*	data_buf[9] = 0x00; */
-	/* number_of_heads = 0xFF */
 	data_buf[10] = 0xFF;
-/*	data_buf[11] = 0x00; */
-	/* hidden sect */
 	data_buf[12] = 62;
-/*	data_buf[13] = 0x00; */
-/*	data_buf[14] = 0x00; */
-/*	data_buf[15] = 0x00; */
     }
-
     if (BytesInBlockDiv16 == 2) {
-	/* sect cnt */
-	data_buf[0] = 0x00;
 	data_buf[1] = 0x10;
-	data_buf[2] = 0x00;
-/*	data_buf[3] = 0x00; */
-	/* sectors per fat */
 	data_buf[4] = 0x8;
-/*	data_buf[5] = 0; */
-/*	data_buf[6] = 0; */
-/*	data_buf[7] = 0; */
-	/* main fat num */
-/*	data_buf[8] = 0; */
-/*	data_buf[9] = 0; */
-	/* fat version */
-/*	data_buf[10] = 0; */
-/*	data_buf[11] = 0; */
-	/* root start cluster */
 	data_buf[12] = 2;
-/*	data_buf[13] = 0; */
-/*	data_buf[14] = 0; */
-/*	data_buf[15] = 0; */
     }
-	/* boot signature */
-
     if (BytesInBlockDiv16 == 3) {
-	/* FSINFO sector */
-/*	data_buf[0] = 0; */
-/*	data_buf[1] = 0; */
-	/* backup boot sect */
-/*	data_buf[2] = 0; */
-/*	data_buf[3] = 0; */
-	/* reserv */
-/*	data_buf[4] = 0; */
-/*	data_buf[5] = 0; */
-/*	data_buf[6] = 0; */
-/*	data_buf[7] = 0; */
-/*	data_buf[8] = 0; */
-/*	data_buf[9] = 0; */
-/*	data_buf[10] = 0; */
-/*	data_buf[11] = 0; */
-/*	data_buf[12] = 0; */
-/*	data_buf[13] = 0; */
-/*	data_buf[14] = 0; */
-/*	data_buf[15] = 0; */
+	data_buf[0] = 0x01;
+	data_buf[2] = 0x06;
     }
-
     if (BytesInBlockDiv16 == 4) {
-	/* drive number */
 	data_buf[0] = 0x80;
-	/* reserv */
-/*	data_buf[1] = 0x00; */
-	/* boot signature */
 	data_buf[2] = 0x29;
 	/* datetime (vol id) ? */
 	data_buf[3] = 148;
@@ -407,7 +321,6 @@ uint8_t * read_boot_sect(uint8_t * data_buf, uint8_t BytesInBlockDiv16){
 	data_buf[14] = ' ';
 	data_buf[15] = ' ';
     }
-
     if (BytesInBlockDiv16 == 5) {
 	/* vol label */
 	data_buf[0] = ' ';
@@ -421,15 +334,7 @@ uint8_t * read_boot_sect(uint8_t * data_buf, uint8_t BytesInBlockDiv16){
 	data_buf[7] = ' ';
 	data_buf[8] = ' ';
 	data_buf[9] = ' ';
-	/* code */
-/*	data_buf[10] = 0; */
-/*	data_buf[11] = 0; */
-/*	data_buf[12] = 0; */
-/*	data_buf[13] = 0; */
-/*	data_buf[14] = 0; */
-/*	data_buf[15] = 0; */
     }
-
     if (BytesInBlockDiv16 == 31) {     /* code, signature */
 	data_buf[14] = 0x55;
 	data_buf[15] = 0xAA;
@@ -461,9 +366,34 @@ uint8_t * read_fat(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlo
 	data_buf[14] = 0x00;
 	data_buf[15] = 0x00;
 	}
-
     return data_buf;
 }
 
 
+uint8_t * read_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlockDiv16) {
+    memset(data_buf, 0, 16);
+    uint32_t size;
+    if ((BlockAddress == ROOT_SECTOR) && (BytesInBlockDiv16 == 0)) {
+	/* root, chunck 1 */
+	data_buf[0] = 'L';
+	data_buf[1] = 'U';
+	data_buf[2] = 'F';
+	data_buf[3] = 'A';
+
+	data_buf[4] = '_';
+	data_buf[5] = '1';
+	data_buf[6] = ' ';
+	data_buf[7] = ' ';
+
+	data_buf[8] = ' ';
+	data_buf[9] = ' ';
+	data_buf[10] = ' ';
+	data_buf[11] = 0x08;
+    } else
+    if ((BlockAddress == ROOT_SECTOR) && (BytesInBlockDiv16 == 1)) {
+	/* root, chunck 2 */
+	/* все нули */
+    }
+    return data_buf;
+}
 
