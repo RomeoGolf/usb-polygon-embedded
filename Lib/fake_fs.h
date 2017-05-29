@@ -52,4 +52,6 @@
 		extern uint8_t data_device;
 /* ------------------------------------ */
 
+	void fakeFsInit(void);
+
 #endif

@@ -1,4 +1,5 @@
 #include "fake_fs.h"
+#include "avr/pgmspace.h"
 
 #define ATTR_READ 0x01
 #define ATTR_HIDDEN 0x02
@@ -35,6 +36,45 @@
  * 3 кластер - первый файл
  *
  */
+
+uint32_t nClusters;
+uint32_t lastFileNo;
+
+#define SIZE_OF_KEY 38
+static const char guidKey[] PROGMEM = "{7065c23a-3818-43c5-bdf0-55567ade31e7}";
+uint8_t * readKey(uint8_t *data_buf, uint32_t size, uint32_t offset);
+
+typedef uint8_t * (*ProcedureForRead)(uint8_t *data_buf, uint32_t size, uint32_t offset);
+
+typedef struct {
+  char name[11];
+  uint32_t size;
+  ProcedureForRead procedureForRead;
+} FileEntry;
+
+static const FileEntry fileTable[] PROGMEM =
+{
+    {"KEY_FILETXT", SIZE_OF_KEY, readKey},
+/*    {"README  TXT", SIZE_OF_README, readMe},*/
+/*    {"TESTFILETXT", SIZE_OF_TEST, readTest},*/
+/*    {"USERDATATXT", 16, readUserData},*/
+    {{ 0 }, 0, NULL}
+};
+
+void fakeFsInit() {
+    nClusters = ROOT_CLUSTER;
+    uint32_t clustFileSize;
+    uint32_t size;
+    int i = 0;
+    for (i = 0; pgm_read_byte(&(fileTable[i].name[0])) != 0; i++) {
+		size = pgm_read_dword(&(fileTable[i].size));
+		clustFileSize = (size % BYTES_PER_CLUSTER == 0) ?
+				size >> BYTES_PER_CLUST_SHIFT :
+				(size >> BYTES_PER_CLUST_SHIFT) + 1;
+		nClusters += clustFileSize;
+    }
+    lastFileNo = i - 1;
+}
 
 static bool first = true;
 
@@ -343,32 +383,80 @@ uint8_t * read_boot_sect(uint8_t * data_buf, uint8_t BytesInBlockDiv16){
 }
 
 uint8_t * read_fat(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlockDiv16) {
+    uint32_t nextClaster;
+    uint32_t size = pgm_read_dword(&(fileTable[0].size));
     memset(data_buf, 0, 16);
     if ((BlockAddress == 0) && (BytesInBlockDiv16 == 0)) {
-	/* first fat */
-	data_buf[0] = 0xF8;
-	data_buf[1] = 0xFF;
-	data_buf[2] = 0xFF;
-	data_buf[3] = 0x0F;
-	/* second fat */
-	data_buf[4] = 0xF8;
-	data_buf[5] = 0xFF;
-	data_buf[6] = 0xFF;
-	data_buf[7] = 0x0F;
-	/* root dir */
-	data_buf[8] = 0xFF;
-	data_buf[9] = 0xFF;
-	data_buf[10] = 0xFF;
-	data_buf[11] = 0xFF;
-	/* file1 */
-	data_buf[12] = 0x00;
-	data_buf[13] = 0x00;
-	data_buf[14] = 0x00;
-	data_buf[15] = 0x00;
-	}
+		/* first fat */
+		data_buf[0] = 0xF8;
+		data_buf[1] = 0xFF;
+		data_buf[2] = 0xFF;
+		data_buf[3] = 0xFF;
+		/* second fat */
+		data_buf[4] = 0xF8;
+		data_buf[5] = 0xFF;
+		data_buf[6] = 0xFF;
+		data_buf[7] = 0xFF;
+		/* root dir */
+		data_buf[8] = 0xFF;
+		data_buf[9] = 0xFF;
+		data_buf[10] = 0xFF;
+		data_buf[11] = 0xFF;
+		/* file1 */
+		if (fileTable == NULL || size == 0) {
+		  data_buf[12] = 0x00;
+		  data_buf[13] = 0x00;
+		  data_buf[14] = 0x00;
+		  data_buf[15] = 0x00;
+		} else
+		if (size <= SECTORS_PER_CLUSTER * BYTES_PER_SECTOR) {
+		  data_buf[12] = 0xFF;
+		  data_buf[13] = 0xFF;
+		  data_buf[14] = 0xFF;
+		  data_buf[15] = 0xFF;
+		} else
+		if (size > SECTORS_PER_CLUSTER * BYTES_PER_SECTOR) {
+		  nextClaster = (ROOT_CLUSTER + 2);
+		  data_buf[12] = nextClaster & 0xFF;
+		  data_buf[13] = (nextClaster >> 8) & 0xFF;
+		  data_buf[14] = (nextClaster >> 16) & 0xFF;
+		  data_buf[15] = (nextClaster >> 24) & 0xFF;
+		}
+	} else {
+		uint32_t readingClustNo = ((BlockAddress << BYTES_PER_SECT_SHIFT) + (BytesInBlockDiv16 << 4)) >> 2;
+		uint32_t clustFileSize;
+		uint32_t lastFileEndClust = ROOT_CLUSTER;
+		uint16_t currFileNo = 0;
+
+		for (int j = 0; j < 16; j +=4 ) {
+			for (int i = currFileNo; i <= lastFileNo; i++) {
+				size = pgm_read_dword(&(fileTable[i].size));
+				clustFileSize = (size % BYTES_PER_CLUSTER == 0) ?
+						size >> BYTES_PER_CLUST_SHIFT :
+						(size >> BYTES_PER_CLUST_SHIFT) + 1;
+				if (readingClustNo == lastFileEndClust + clustFileSize) {
+					data_buf[j + 0] = 0xFF;
+					data_buf[j + 1] = 0xFF;
+					data_buf[j + 2] = 0xFF;
+					data_buf[j + 3] = 0xFF;
+					break;
+				}
+				if ((readingClustNo > lastFileEndClust) && (readingClustNo < lastFileEndClust + clustFileSize)) {
+					nextClaster = (readingClustNo + 1);
+					data_buf[j + 0] = (nextClaster >> 0) & 0xFF;
+					data_buf[j + 1] = (nextClaster >> 8) & 0xFF;
+					data_buf[j + 2] = (nextClaster >> 16) & 0xFF;
+					data_buf[j + 3] = (nextClaster >> 24) & 0xFF;
+					break;
+				}
+				lastFileEndClust += clustFileSize;
+				currFileNo++;
+			}
+			readingClustNo += 1;
+		}
+    }
     return data_buf;
 }
-
 
 uint8_t * read_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlockDiv16) {
     memset(data_buf, 0, 16);
@@ -393,7 +481,97 @@ uint8_t * read_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBl
     if ((BlockAddress == ROOT_SECTOR) && (BytesInBlockDiv16 == 1)) {
 	/* root, chunck 2 */
 	/* все нули */
+    } else
+	if ((BlockAddress >= ROOT_SECTOR) && (BlockAddress < ROOT_SECTOR + SECTORS_PER_CLUSTER)) {
+		uint16_t readingChunck = (((BlockAddress - ROOT_SECTOR) << BYTES_PER_SECT_SHIFT) + (BytesInBlockDiv16 << 4)) >> 4;
+		uint16_t fileNum = (readingChunck >> 1) - 1;
+		if (fileNum <= lastFileNo) {
+			if ((readingChunck & 1) == 0){
+				memcpy_P(data_buf, (PGM_P)(&(fileTable[fileNum].name[0])), 11);
+
+				data_buf[11] = ATTR_ARCHIVE;
+				data_buf[12] = 0x00; /* reserv */
+				data_buf[13] = 0x04; /* creation minisec */
+				data_buf[14] = 0x72; /* creation time */
+				data_buf[15] = 0x00; /* creation time */
+
+			} else {
+				uint32_t firstCluster = ROOT_CLUSTER + 1;
+				uint32_t clustFileSize;
+				for (uint16_t i = 0; i < fileNum; i++) {
+					size = pgm_read_dword(&(fileTable[i].size));
+					clustFileSize = (size % BYTES_PER_CLUSTER == 0) ?
+						size >> BYTES_PER_CLUST_SHIFT :
+						(size >> BYTES_PER_CLUST_SHIFT) + 1;
+					firstCluster += clustFileSize;
+				}
+
+				data_buf[0] = 0x79; /*  */
+				data_buf[1] = 0x40; /*  */
+				data_buf[2] = 0x79; /*  */
+				data_buf[3] = 0x40; /*  */
+
+				data_buf[4] = (firstCluster >> 16) & 0xFF;
+				data_buf[5] = (firstCluster >> 24) & 0xFF;
+				data_buf[6] = 0x00; /*  */
+				data_buf[7] = 0x00; /*  */
+
+				data_buf[8] = 0x79; /*  */
+				data_buf[9] = 0x40; /*  */
+
+				data_buf[10] = firstCluster & 0xFF;
+				data_buf[11] = (firstCluster >> 8) & 0xFF;
+
+				/* file size */
+				size = pgm_read_dword(&(fileTable[fileNum].size));
+				data_buf[12] = size & 0xFF;
+				data_buf[13] = (size >> 8) & 0xFF;
+				data_buf[14] = (size >> 16) & 0xFF;
+				data_buf[15] = (size >> 24) & 0xFF;
+			}
+		}
+    }
+
+    if ((BlockAddress >= ROOT_SECTOR + SECTORS_PER_CLUSTER)) {
+		BlockAddress -= BOOT_SECTOR + 1;
+
+		uint32_t readingClustNo = ((BlockAddress << BYTES_PER_SECT_SHIFT) + (BytesInBlockDiv16 << 4)) >> BYTES_PER_CLUST_SHIFT;
+		uint32_t clustFileSize;
+		uint32_t lastFileEndClust = ROOT_CLUSTER ;
+		ProcedureForRead pFunc;
+
+		for (uint16_t i = 0; i <= lastFileNo; i++) {
+			size = pgm_read_dword(&(fileTable[i].size));
+			clustFileSize = (size % BYTES_PER_CLUSTER == 0) ?
+					size >> BYTES_PER_CLUST_SHIFT :
+					(size >> BYTES_PER_CLUST_SHIFT) + 1;
+			if ((readingClustNo > lastFileEndClust) && (readingClustNo <= lastFileEndClust + clustFileSize)) {
+				memcpy_P(&pFunc, &(fileTable[i].procedureForRead), sizeof(PGM_VOID_P));
+				if (pFunc == NULL) {
+					break;
+				} else {
+					uint32_t offset =
+					((BlockAddress - ((lastFileEndClust + 1) << SECTORS_PER_CLUST_SHIFT)) << BYTES_PER_SECT_SHIFT) +
+					(BytesInBlockDiv16 << 4);
+					if (offset > size) break;
+					return pFunc(data_buf, fileTable[i].size, offset);
+				}
+				break;
+			}
+			lastFileEndClust += clustFileSize;
+		}
     }
     return data_buf;
 }
+
+uint8_t * readKey(uint8_t *data_buf, uint32_t size, uint32_t offset) {
+    if ((offset + 16) > SIZE_OF_KEY) {
+		if (offset < SIZE_OF_KEY) memcpy_P(data_buf, (PGM_P)(&(guidKey[0]) + offset), SIZE_OF_KEY - offset);
+    } else {
+		memcpy_P(data_buf, (PGM_P)(&(guidKey[0]) + offset), 16);
+    }
+    return data_buf;
+}
+
+
 

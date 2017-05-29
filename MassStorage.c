@@ -36,6 +36,7 @@
 
 #define  INCLUDE_FROM_MASSSTORAGE_C
 #include "MassStorage.h"
+#include "Lib/fake_fs.h"
 
 /** Structure to hold the latest Command Block Wrapper issued by the host, containing a SCSI command to execute. */
 MS_CommandBlockWrapper_t  CommandBlock;
@@ -164,6 +165,7 @@ void SetupHardware(void)
 /*	LEDs_Init();*/
 /*	Dataflash_Init();*/
 	USB_Init();
+	fakeFsInit();
 
 	/* Check if the Dataflash is working, abort if not */
 /*	if (!(DataflashManager_CheckDataflashOperation()))*/
