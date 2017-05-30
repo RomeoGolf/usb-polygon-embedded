@@ -404,12 +404,12 @@ uint8_t * read_fat(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlo
 		data_buf[0] = 0xF8;
 		data_buf[1] = 0xFF;
 		data_buf[2] = 0xFF;
-		data_buf[3] = 0xFF;
+		data_buf[3] = 0x0F;
 		/* second fat */
 		data_buf[4] = 0xF8;
 		data_buf[5] = 0xFF;
 		data_buf[6] = 0xFF;
-		data_buf[7] = 0xFF;
+		data_buf[7] = 0x0F;
 		/* root dir */
 		data_buf[8] = 0xFF;
 		data_buf[9] = 0xFF;
