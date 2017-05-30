@@ -54,6 +54,9 @@ uint8_t * readMe(uint8_t *data_buf, uint32_t size, uint32_t offset);
 #define SIZE_OF_TEST	0x100000
 uint8_t * readTest(uint8_t *data_buf, uint32_t size, uint32_t offset);
 
+#define SIZE_OF_USERDATA	0x10
+uint8_t * readUserData(uint8_t *data_buf, uint32_t size, uint32_t offset);
+
 typedef uint8_t * (*ProcedureForRead)(uint8_t *data_buf, uint32_t size, uint32_t offset);
 
 typedef struct {
@@ -67,7 +70,7 @@ static const FileEntry fileTable[] PROGMEM =
     {"KEY_FILETXT", SIZE_OF_KEY, readKey},
     {"README  TXT", SIZE_OF_README, readMe},
     {"TESTFILETXT", SIZE_OF_TEST, readTest},
-/*    {"USERDATATXT", 16, readUserData},*/
+    {"USERDATATXT", SIZE_OF_USERDATA, readUserData},
     {{ 0 }, 0, NULL}
 };
 
@@ -642,5 +645,15 @@ uint8_t * readTest(uint8_t *data_buf, uint32_t size, uint32_t offset) {
     data_buf[14] = 0x20;
     data_buf[15] = 0x20;
 
+    return data_buf;
+}
+
+uint8_t * readUserData(uint8_t *data_buf, uint32_t size, uint32_t offset) {
+    const char *prefix = "Counter = ";
+    memset(data_buf, 0x20, 16);
+    memcpy(data_buf, prefix, 10);
+    data_buf[10] = ((data_device >> 4) & 0xF) <= 9 ? 48 + ((data_device >> 4) & 0xf) : 55 + ((data_device >> 4) &0xF);
+    data_buf[11] = (data_device & 0xF) <= 9 ? 48 + (data_device & 0xf) : 55 + (data_device &0xF);
+    data_buf[12] = 'h';
     return data_buf;
 }

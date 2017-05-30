@@ -48,8 +48,6 @@ MS_CommandStatusWrapper_t CommandStatus = { .Signature = MS_CSW_SIGNATURE };
 volatile bool IsMassStoreReset = false;
 
 unsigned char cnt = 0;			// просто счетчик
-uint8_t data_PC;
-uint8_t data_device;
 
 /** Main program entry point. This routine configures the hardware required by the application, then
  *  enters a loop to run the application tasks in sequence.
