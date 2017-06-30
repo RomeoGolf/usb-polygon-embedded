@@ -88,8 +88,5 @@
 			static void ReturnCommandStatus(void);
 		#endif
 
-	uint8_t data_PC;
-	uint8_t data_device;
-
 #endif
 

@@ -1,5 +1,6 @@
 #include "fake_fs.h"
 #include "avr/pgmspace.h"
+#include "../common.h"
 
 #define ATTR_READ 0x01
 #define ATTR_HIDDEN 0x02

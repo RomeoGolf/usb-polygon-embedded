@@ -36,6 +36,7 @@
 
 #define  INCLUDE_FROM_MASSSTORAGE_C
 #include "MassStorage.h"
+#include "common.h"
 #include "Lib/fake_fs.h"
 
 /** Structure to hold the latest Command Block Wrapper issued by the host, containing a SCSI command to execute. */
@@ -48,6 +49,9 @@ MS_CommandStatusWrapper_t CommandStatus = { .Signature = MS_CSW_SIGNATURE };
 volatile bool IsMassStoreReset = false;
 
 unsigned char cnt = 0;			// просто счетчик
+uint8_t data_PC = 0;
+uint8_t data_device = 0;
+uint8_t canDo = 0;
 
 /** Main program entry point. This routine configures the hardware required by the application, then
  *  enters a loop to run the application tasks in sequence.
