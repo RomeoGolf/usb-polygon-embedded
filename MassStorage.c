@@ -115,6 +115,8 @@ int main(void)
                     if ((bt_now & 0x10) == 0) {cnt_bt++;}  // верхняя кнопка увеличивает счет нажатий
                     if ((bt_now & 0x20) == 0) {cnt_bt--;}  // а вторая сверху - уменьшает
                 }
+				if (bt_now & 0x40) {canDo = 1;}
+				if (bt_now & 0x80) {canDo = 0;}
                 bt_old = bt_now;            // и сохраняем состояние порта для следующей проверки
             }
 
@@ -125,7 +127,8 @@ int main(void)
                     PORTD = cnt;    // просто счетчик
                     break;
                 case 1 :
-                     PORTD = bt_now;            // состояние кнопок
+/*                     PORTD = bt_now;            // состояние кнопок*/
+                     PORTD = canDo;
                     break;
                 case 2 :
                     PORTD = cnt_bt;  // счетчик нажатий
