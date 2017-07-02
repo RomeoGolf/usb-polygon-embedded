@@ -52,6 +52,7 @@ unsigned char cnt = 0;			// просто счетчик
 uint8_t data_PC = 0;
 uint8_t data_device = 0;
 uint8_t canDo = 0;
+uint8_t data[128] = { 0 };
 
 /** Main program entry point. This routine configures the hardware required by the application, then
  *  enters a loop to run the application tasks in sequence.
@@ -77,6 +78,10 @@ int main(void)
 								// маски:
 								// 10, 20, 04, 40, 80
 
+/*	for(int i = 0; i < 128; i++) {*/
+/*		data[i] = (i >> 1);*/
+/*	}*/
+
     /* запуск таймера 0 на период ~0.01 с */
     /* (защита от дребезга) */
     TCCR0B = 4;  /* 1 тик = 0.000032 с */
@@ -88,6 +93,7 @@ int main(void)
     TCNT1 = 65536 - 15625;
     /* разрешение прерываний таймера 1*/
     /*TIMSK1 = (1 << TOIE1);*/
+
 	for (;;)
 	{
 		MassStorage_Task();
@@ -115,8 +121,8 @@ int main(void)
                     if ((bt_now & 0x10) == 0) {cnt_bt++;}  // верхняя кнопка увеличивает счет нажатий
                     if ((bt_now & 0x20) == 0) {cnt_bt--;}  // а вторая сверху - уменьшает
                 }
-				if (bt_now & 0x40) {canDo = 1;}
-				if (bt_now & 0x80) {canDo = 0;}
+				if ((bt_now & 0x40) == 0) {canDo = 1;}
+				if ((bt_now & 0x80) == 0) {canDo = 0;}
                 bt_old = bt_now;            // и сохраняем состояние порта для следующей проверки
             }
 

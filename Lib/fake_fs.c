@@ -58,6 +58,9 @@ uint8_t * readTest(uint8_t *data_buf, uint32_t size, uint32_t offset);
 #define SIZE_OF_USERDATA	0x10
 uint8_t * readUserData(uint8_t *data_buf, uint32_t size, uint32_t offset);
 
+#define SIZE_OF_DATA	128
+uint8_t * readData(uint8_t *data_buf, uint32_t size, uint32_t offset);
+
 typedef uint8_t * (*ProcedureForRead)(uint8_t *data_buf, uint32_t size, uint32_t offset);
 
 typedef struct {
@@ -72,6 +75,7 @@ static const FileEntry fileTable[] PROGMEM =
     {"README  TXT", SIZE_OF_README, readMe},
     {"TESTFILETXT", SIZE_OF_TEST, readTest},
     {"USERDATATXT", SIZE_OF_USERDATA, readUserData},
+    {"DATA    BIN", SIZE_OF_DATA, readData},
     {{ 0 }, 0, NULL}
 };
 
@@ -306,6 +310,19 @@ void process_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBloc
 		first = false;
 		data_PC = data_buf[0];
 	}
+
+	static uint8_t ind = 0;
+	static uint32_t d = 5;
+
+/*	if (BytesInBlockDiv16 == 0) {*/
+/*	if (BlockAddress == 0x57) {*/
+/*		if (ind < 128) {*/
+/*			data[ind++ * 4] = BlockAddress;*/
+/*			for (uint8_t i = 0; i < 16; i++) {*/
+/*				data[ind++] = data_buf[i];*/
+/*			}*/
+/*		}*/
+/*	}*/
 }
 
 uint8_t * read_mbr(uint8_t * data_buf, uint8_t BytesInBlockDiv16){
@@ -658,3 +675,15 @@ uint8_t * readUserData(uint8_t *data_buf, uint32_t size, uint32_t offset) {
     data_buf[12] = 'h';
     return data_buf;
 }
+
+
+uint8_t * readData(uint8_t *data_buf, uint32_t size, uint32_t offset) {
+    if ((offset + 16) > SIZE_OF_DATA) {
+		memset(data_buf, 0, 16);
+	if (offset < SIZE_OF_DATA) memcpy(data_buf, &(data[0]) + offset, SIZE_OF_DATA - offset);
+    } else {
+		memcpy(data_buf, &(data[0]) + offset, 16);
+    }
+    return data_buf;
+}
+
