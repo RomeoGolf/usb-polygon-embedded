@@ -370,8 +370,8 @@ uint8_t * read_boot_sect(uint8_t * data_buf, uint8_t BytesInBlockDiv16){
 	data_buf[12] = 2;
     }
     if (BytesInBlockDiv16 == 3) {
-	data_buf[0] = 0x01;
-	data_buf[2] = 0x06;
+/*	data_buf[0] = 0x01;*/
+/*	data_buf[2] = 0x06;*/
     }
     if (BytesInBlockDiv16 == 4) {
 	data_buf[0] = 0x80;
