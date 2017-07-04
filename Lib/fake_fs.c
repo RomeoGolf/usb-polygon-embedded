@@ -424,7 +424,7 @@ uint8_t * read_fat(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlo
 		data_buf[2] = 0xFF;
 		data_buf[3] = 0x0F;
 		/* second fat */
-		data_buf[4] = 0xF8;
+		data_buf[4] = 0xFF;
 		data_buf[5] = 0xFF;
 		data_buf[6] = 0xFF;
 		data_buf[7] = 0x0F;
@@ -432,7 +432,7 @@ uint8_t * read_fat(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlo
 		data_buf[8] = 0xFF;
 		data_buf[9] = 0xFF;
 		data_buf[10] = 0xFF;
-		data_buf[11] = 0xFF;
+		data_buf[11] = 0x0F;
 		/* file1 */
 		if (fileTable == NULL || size == 0) {
 		  data_buf[12] = 0x00;
@@ -444,7 +444,7 @@ uint8_t * read_fat(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlo
 		  data_buf[12] = 0xFF;
 		  data_buf[13] = 0xFF;
 		  data_buf[14] = 0xFF;
-		  data_buf[15] = 0xFF;
+		  data_buf[15] = 0x0F;
 		} else
 		if (size > SECTORS_PER_CLUSTER * BYTES_PER_SECTOR) {
 		  nextClaster = (ROOT_CLUSTER + 2);
@@ -469,7 +469,7 @@ uint8_t * read_fat(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlo
 					data_buf[j + 0] = 0xFF;
 					data_buf[j + 1] = 0xFF;
 					data_buf[j + 2] = 0xFF;
-					data_buf[j + 3] = 0xFF;
+					data_buf[j + 3] = 0x0F;
 					break;
 				}
 				if ((readingClustNo > lastFileEndClust) && (readingClustNo < lastFileEndClust + clustFileSize)) {
@@ -477,7 +477,7 @@ uint8_t * read_fat(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlo
 					data_buf[j + 0] = (nextClaster >> 0) & 0xFF;
 					data_buf[j + 1] = (nextClaster >> 8) & 0xFF;
 					data_buf[j + 2] = (nextClaster >> 16) & 0xFF;
-					data_buf[j + 3] = (nextClaster >> 24) & 0xFF;
+					data_buf[j + 3] = (nextClaster >> 24) & 0x0F;
 					break;
 				}
 				lastFileEndClust += clustFileSize;
