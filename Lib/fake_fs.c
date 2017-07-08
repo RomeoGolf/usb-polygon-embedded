@@ -314,15 +314,15 @@ void process_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBloc
 	static uint8_t ind = 0;
 	static uint32_t d = 5;
 
-/*	if (BytesInBlockDiv16 == 0) {*/
-/*	if (BlockAddress == 0x57) {*/
-/*		if (ind < 128) {*/
-/*			data[ind++ * 4] = BlockAddress;*/
+	if (BytesInBlockDiv16 == 0) {
+/*	if (BlockAddress >= 0x57) {*/
+		if (ind < 128) {
+			data[ind++ * 4] = BlockAddress;
 /*			for (uint8_t i = 0; i < 16; i++) {*/
 /*				data[ind++] = data_buf[i];*/
 /*			}*/
-/*		}*/
-/*	}*/
+		}
+	}
 }
 
 uint8_t * read_mbr(uint8_t * data_buf, uint8_t BytesInBlockDiv16){
