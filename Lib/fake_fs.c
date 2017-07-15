@@ -68,6 +68,14 @@ uint8_t * readData(uint8_t *data_buf, uint32_t size, uint32_t offset);
 
 typedef uint8_t * (*ProcedureForRead)(uint8_t *data_buf, uint32_t size, uint32_t offset);
 
+#define SIZE_OF_COMMAND	16
+static const char strToFile[] PROGMEM = "Write to file   ";
+static const char strToLED[] PROGMEM = "Write to LED    ";
+static const char strStop[] PROGMEM = "Stop writing    ";
+uint8_t * readToFile(uint8_t *data_buf, uint32_t size, uint32_t offset);
+uint8_t * readToLed(uint8_t *data_buf, uint32_t size, uint32_t offset);
+uint8_t * readStop(uint8_t *data_buf, uint32_t size, uint32_t offset);
+
 typedef struct {
   char name[11];
   uint32_t size;
@@ -699,6 +707,24 @@ uint8_t * readData(uint8_t *data_buf, uint32_t size, uint32_t offset) {
     } else {
 		memcpy(data_buf, &(data[0]) + offset, 16);
     }
+    return data_buf;
+}
+
+uint8_t * readToFile(uint8_t *data_buf, uint32_t size, uint32_t offset) {
+	writeType = ToFile;
+	memcpy_P(data_buf, (PGM_P)(&(strToFile[0]) + offset), 16);
+    return data_buf;
+}
+
+uint8_t * readToLed(uint8_t *data_buf, uint32_t size, uint32_t offset) {
+	writeType = ToLed;
+	memcpy_P(data_buf, (PGM_P)(&(strToLED[0]) + offset), 16);
+    return data_buf;
+}
+
+uint8_t * readStop(uint8_t *data_buf, uint32_t size, uint32_t offset) {
+	writeType = None;
+	memcpy_P(data_buf, (PGM_P)(&(strStop[0]) + offset), 16);
     return data_buf;
 }
 
