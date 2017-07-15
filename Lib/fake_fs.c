@@ -39,6 +39,10 @@
  *
  */
 
+enum WriteType {None, ToFile, ToLed};
+
+static enum WriteType writeType = None;
+
 uint32_t nClusters;
 uint32_t lastFileNo;
 
