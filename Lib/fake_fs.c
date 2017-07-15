@@ -89,6 +89,9 @@ static const FileEntry fileTable[] PROGMEM =
     {"TESTFILETXT", SIZE_OF_TEST, readTest},
     {"USERDATATXT", SIZE_OF_USERDATA, readUserData},
     {"DATA    BIN", SIZE_OF_DATA, readData},
+    {"TO_FILE TXT", SIZE_OF_COMMAND, readToFile},
+    {"TO_LED  TXT", SIZE_OF_COMMAND, readToLed},
+    {"STOP    TXT", SIZE_OF_COMMAND, readStop},
     {{ 0 }, 0, NULL}
 };
 
