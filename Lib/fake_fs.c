@@ -25,6 +25,7 @@
 #define FAT2_SECTOR	    (FAT1_SECTOR + SECTORS_PER_FAT)
 #define ROOT_SECTOR	    (FAT2_SECTOR + SECTORS_PER_FAT)
 #define ROOT_CLUSTER    (SECTORS_PER_FAT * 2 / SECTORS_PER_CLUSTER)
+#define FILES_AREA      (ROOT_SECTOR + SECTORS_PER_CLUSTER)
 /* предполагается, что root-каталог занимает 1 кластер */
 
 /*
