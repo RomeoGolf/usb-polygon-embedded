@@ -110,8 +110,6 @@ void fakeFsInit() {
     lastFileNo = i - 1;
 }
 
-static bool first = true;
-
 /* data "device -> PC" */
 uint8_t * prepare_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlockDiv16);
 /* data "PC -> device" */
