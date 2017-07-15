@@ -322,33 +322,29 @@ uint8_t * prepare_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesI
 }
 
 void process_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlockDiv16){
-	if (first) {
-		first = false;
-		data_PC = data_buf[0];
-	}
-
 	static uint8_t ind = 0;
-	static uint32_t d = 5;
 
-	/*
-	if (BytesInBlockDiv16 == 0) {
-		if (ind < 128) {
-			data[ind++] = (BlockAddress >> 0) & 0xFF;
-			data[ind++] = (BlockAddress >> 8) & 0xFF;
-			data[ind++] = (BlockAddress >> 16) & 0xFF;
-			data[ind++] = (BlockAddress >> 24) & 0xFF;
-		}
-	}
-	*/
-
-	if (BlockAddress >= 0x57) {
-		if (ind < 128) {
-			for (uint8_t i = 0; i < 16; i++) {
-				data[ind++] = data_buf[i];
+	switch (writeType){
+	case ToFile:
+		if (BlockAddress >= FILES_AREA) {
+			if (ind < 128) {
+				for (uint8_t i = 0; i < 16; i++) {
+					data[ind++] = data_buf[i];
+				}
 			}
 		}
+		break;
+	case ToLed:
+		if (BlockAddress >= FILES_AREA) {
+			for (uint8_t i = 0; i < 16; i++) {
+				data_PC = data_buf[i];
+				PORTD = data_PC;
+			}
+		}
+		break;
+	default:
+		;
 	}
-
 }
 
 uint8_t * read_mbr(uint8_t * data_buf, uint8_t BytesInBlockDiv16){
