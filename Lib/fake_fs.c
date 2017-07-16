@@ -350,7 +350,7 @@ uint8_t * read_mbr(uint8_t * data_buf, uint8_t BytesInBlockDiv16){
     if (BytesInBlockDiv16 == 28) {
 	data_buf[2] = 0x0C; /* type FAT32 with LBA */
 	data_buf[6] = BOOT_SECTOR; /* start LBA */
-	data_buf[11] = 0x10; /* num of sect */
+	data_buf[11] = 0x5F; /* num of sect */
     }
     if (BytesInBlockDiv16 == 31) {     /* part 4, signature */
 	data_buf[14] = 0x55;
@@ -385,7 +385,7 @@ uint8_t * read_boot_sect(uint8_t * data_buf, uint8_t BytesInBlockDiv16){
 	data_buf[12] = 62;
     }
     if (BytesInBlockDiv16 == 2) {
-	data_buf[1] = 0x10;
+	data_buf[2] = 0x20;
 	data_buf[4] = 0x8;
 	data_buf[12] = 2;
     }
