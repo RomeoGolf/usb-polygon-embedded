@@ -39,6 +39,8 @@
 #include "common.h"
 #include "Lib/fake_fs.h"
 
+#include <util/delay.h>
+
 /** Structure to hold the latest Command Block Wrapper issued by the host, containing a SCSI command to execute. */
 MS_CommandBlockWrapper_t  CommandBlock;
 
@@ -53,6 +55,44 @@ uint8_t data_PC = 0;
 uint8_t data_device = 0;
 uint8_t canDo = 0;
 uint8_t data[128] = { 0 };
+uint8_t test1 = 0;
+
+void out9bit(uint8_t bit9, uint8_t data8) {
+	PORTB &= ~(1 << PORTB0);		// cs -> 0
+	PORTB &= ~(1 << PORTB1);		// sclk -> 0
+
+	if (bit9 == 0) {
+		PORTB &= ~(1 << PORTB2);	// data -> 0
+	} else {
+		PORTB |= (1 << PORTB2);		// data -> 1
+	}
+
+	PORTB |= (1 << PORTB1);			// sclk -> 1
+
+	for (uint8_t i = 0; i <=7; i++){
+		PORTB &= ~(1 << PORTB1);		// sclk -> 0
+		if ((data8 & 0x80) == 0) {
+			PORTB &= ~(1 << PORTB2);	// data -> 0
+		} else {
+			PORTB |= (1 << PORTB2);		// data -> 1
+		}
+		PORTB |= (1 << PORTB1);			// sclk -> 1
+		data8 <<= 1;
+		_delay_ms(3);
+		PORTB |= (1 << PORTB0);			// cs -> 1
+	}
+}
+
+void scrClear(void)
+{
+	out9bit(0, 0x40); // Y = 0
+	out9bit(0, 0xB0);
+	out9bit(0, 0x10); // X = 0
+	out9bit(0, 0x00);
+	
+	for(uint16_t i = 0; i < 864; i++) out9bit(1, 0x00);
+	
+}
 
 /** Main program entry point. This routine configures the hardware required by the application, then
  *  enters a loop to run the application tasks in sequence.
@@ -67,16 +107,21 @@ int main(void)
     PORTD = 0x00;    // начальное значение - все нули
     DDRD = 0xFF;     // все линии порта на вывод
     PORTC = 0x00;    // без "подтяжки" (есть внешняя)
-    DDRC = 0x00;     // все линии порта на ввод
+	DDRC = 0x00;     // все линии порта на ввод
+    DDRB = 0xFF;     // все линии порта на ввыод
+    PORTB = 0x00;    // начальное значение - все нули
+	/*PORTB |= (1 << PORTB0)	// SC -> 1, not active*/
 
     unsigned char cnt_bt = 0;     // счетчик нажатий на кнопки
-    unsigned char mode_out = 0;   // режим вывода
+    unsigned char mode_out = 1;   // режим вывода
     unsigned char bt_now = 0;     // состояние кнопок
     unsigned char bt_old = 0;     // состояние кнопок в прошлый раз
 								// разряды кнопок сверху вниз:
 								// 4, 5, 2, 6, 7
 								// маски:
 								// 10, 20, 04, 40, 80
+	int8_t cntScreenReset = 0;
+	int8_t canDoWithScreen = 0;
 
 /*	for(int i = 0; i < 128; i++) {*/
 /*		data[i] = (i >> 1);*/
@@ -111,6 +156,57 @@ int main(void)
             TCNT0 = 0;  /* перезапуск таймера 0 */
             TIFR0 = 1;  /* сброс флага срабатывания таймера 0 */
 
+			/* работа с экраном */
+			if (cntScreenReset >= 0) {
+				cntScreenReset++;
+			}
+
+			if (cntScreenReset > 50) {
+				cntScreenReset = -1;
+				PORTB |= (1 << PINB4);
+				canDoWithScreen = 1;
+			}
+
+			if (canDoWithScreen == 1) {
+				canDoWithScreen = 0;
+
+				out9bit(0, 0x20);
+				out9bit(0, 0x90);
+				out9bit(0, 0xa4);
+				out9bit(0, 0x2f);
+				out9bit(0, 0x40);
+				out9bit(0, 0xb0);
+				out9bit(0, 0x10);
+				out9bit(0, 0x00);
+
+				out9bit(0, 0xa1);
+				out9bit(0, 0xac);
+				out9bit(0, 0x07);
+				out9bit(0, 0xaf);
+
+				test1 = 3;
+
+				scrClear();
+
+				out9bit(0,0xA7); 	// инвертированный экран
+				_delay_ms(500);                		// 1/2 Sec delay
+				out9bit(0,0xA6); 	// нормальный экран (не инвертированный)
+				_delay_ms(1000);
+
+				test1 = 7;
+
+				out9bit(1, 0xaa);
+				out9bit(1, 0x11);
+				out9bit(1, 0x22);
+				out9bit(1, 0x33);
+				out9bit(1, 0x77);
+
+				
+
+			}
+
+			/********************/
+
             /* cnt++;*/     // инкремент счетчика - чтобы что-то изменялось
             bt_now = PINC;                  // считывание порта с кнопками
             if (bt_now != bt_old) {         // если состояние порта изменилось
@@ -134,7 +230,8 @@ int main(void)
                     break;
                 case 1 :
 /*                     PORTD = bt_now;            // состояние кнопок*/
-                     PORTD = canDo;
+                     /*PORTD = canDo;*/
+                     PORTD = test1;
                     break;
                 case 2 :
                     PORTD = cnt_bt;  // счетчик нажатий
