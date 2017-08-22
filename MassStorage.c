@@ -55,43 +55,34 @@ uint8_t data_PC = 0;
 uint8_t data_device = 0;
 uint8_t canDo = 0;
 uint8_t data[128] = { 0 };
-uint8_t test1 = 0;
 
-void out9bit(uint8_t bit9, uint8_t data8) {
-	PORTB &= ~(1 << PORTB0);		// cs -> 0
-	PORTB &= ~(1 << PORTB1);		// sclk -> 0
+void out8bit(uint8_t data8) {
+	PORTB &= ~(1 << 0);		// cs -> 0
 
-	if (bit9 == 0) {
-		PORTB &= ~(1 << PORTB2);	// data -> 0
-	} else {
-		PORTB |= (1 << PORTB2);		// data -> 1
-	}
-
-	PORTB |= (1 << PORTB1);			// sclk -> 1
-
-	for (uint8_t i = 0; i <=7; i++){
-		PORTB &= ~(1 << PORTB1);		// sclk -> 0
-		if ((data8 & 0x80) == 0) {
-			PORTB &= ~(1 << PORTB2);	// data -> 0
+	for (uint8_t i = 0; i < 8; i++){
+		PORTB &= ~(1 << 1);		// sclk -> 0
+		if (data8 & 0x80) {
+			PORTB |= (1 << 2);		// data -> 1
 		} else {
-			PORTB |= (1 << PORTB2);		// data -> 1
+			PORTB &= ~(1 << 2);	// data -> 0
 		}
-		PORTB |= (1 << PORTB1);			// sclk -> 1
 		data8 <<= 1;
-		_delay_ms(3);
-		PORTB |= (1 << PORTB0);			// cs -> 1
+		PORTB |= (1 << 1);			// sclk -> 1
 	}
+	PORTB |= (1 << 0);			// cs -> 1
 }
 
 void scrClear(void)
 {
-	out9bit(0, 0x40); // Y = 0
-	out9bit(0, 0xB0);
-	out9bit(0, 0x10); // X = 0
-	out9bit(0, 0x00);
+	PORTB &= ~(1 << 5);	// d/c -> 0
+	out8bit(0x40); // Y = 0
+	out8bit(0x80); // X = 0
 	
-	for(uint16_t i = 0; i < 864; i++) out9bit(1, 0x00);
-	
+	/* 96 * 65 ? 768 -> 864 */
+	PORTB |= (1 << 5);		// d/c -> 1
+	/*for(uint16_t i = 0; i < 864; i++) out8bit(0x00);*/
+	for(uint16_t i = 0; i < (96 * 9); i++) out8bit(0x00);
+	PORTB &= ~(1 << 5);	// d/c -> 0
 }
 
 /** Main program entry point. This routine configures the hardware required by the application, then
@@ -99,10 +90,6 @@ void scrClear(void)
  */
 int main(void)
 {
-	SetupHardware();
-
-/*	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);*/
-	GlobalInterruptEnable();
 
     PORTD = 0x00;    // начальное значение - все нули
     DDRD = 0xFF;     // все линии порта на вывод
@@ -110,18 +97,115 @@ int main(void)
 	DDRC = 0x00;     // все линии порта на ввод
     DDRB = 0xFF;     // все линии порта на ввыод
     PORTB = 0x00;    // начальное значение - все нули
-	/*PORTB |= (1 << PORTB0)	// SC -> 1, not active*/
+	/*PORTB |= (1 << 0)	// SC -> 1, not active*/
 
     unsigned char cnt_bt = 0;     // счетчик нажатий на кнопки
-    unsigned char mode_out = 1;   // режим вывода
+    unsigned char mode_out = 0;   // режим вывода
     unsigned char bt_now = 0;     // состояние кнопок
     unsigned char bt_old = 0;     // состояние кнопок в прошлый раз
 								// разряды кнопок сверху вниз:
 								// 4, 5, 2, 6, 7
 								// маски:
 								// 10, 20, 04, 40, 80
-	int8_t cntScreenReset = 0;
-	int8_t canDoWithScreen = 0;
+
+	// ********************************
+
+	/*PORTB |= (1 << 4);*/
+	/*_delay_ms(10);*/
+	PORTB &= ~(1 << 4);
+	_delay_ms(10);
+	PORTB |= (1 << 4);
+
+
+	PORTB &= ~(1 << 0);		// cs -> 0
+
+	// screen init
+	PORTB &= ~(1 << 5);	// d/c -> 0
+	out8bit(0x21);
+	out8bit(0x80 + 56);
+	out8bit(0x04);
+	out8bit(0x13);
+	out8bit(0x20);
+	out8bit(0x0c);
+
+	scrClear();
+
+	// line on the top
+	PORTB &= ~(1 << 5);	// d/c -> 0
+	out8bit(0x40);
+	out8bit(0x80);
+	PORTB |= (1 << 5);		// d/c -> 1
+	for (uint8_t i = 0; i < 96; i++) {
+		out8bit(0x02);
+	}
+
+	// line on the bottom
+	PORTB &= ~(1 << 5);	// d/c -> 0
+	out8bit(0x47);
+	out8bit(0x80);
+	PORTB |= (1 << 5);		// d/c -> 1
+	for (uint8_t i = 0; i < 96; i++) {
+		out8bit(0x80);
+	}
+
+	// position set
+	PORTB &= ~(1 << 5);	// d/c -> 0
+	out8bit(0x43);
+	out8bit(0x80 | 0x28);
+
+	// data out
+	PORTB |= (1 << 5);		// d/c -> 1
+
+	out8bit(0x00);
+	out8bit(0x00);
+	out8bit(0x00);
+	out8bit(0x80);
+	out8bit(0x40);
+	out8bit(0x20);
+	out8bit(0x10);
+	out8bit(0x88);
+	out8bit(0x44);
+	out8bit(0x22);
+	out8bit(0x31);
+	out8bit(0xc3);
+	out8bit(0x0c);
+	out8bit(0x30);
+	out8bit(0xc0);
+	out8bit(0x00);
+	out8bit(0x00);
+
+	PORTB &= ~(1 << 5);		// d/c -> 0
+	out8bit(0x44);
+	out8bit(0x80 | 0x28);
+	PORTB |= (1 << 5);		// d/c -> 1
+
+	out8bit(0x04);
+	out8bit(0x06);
+	out8bit(0x05);
+	out8bit(0x04);
+	out8bit(0x04);
+	out8bit(0x06);
+	out8bit(0x05);
+	out8bit(0x04);
+	out8bit(0x05);
+	out8bit(0x06);
+	out8bit(0x05);
+	out8bit(0x04);
+	out8bit(0x07);
+	out8bit(0x04);
+	out8bit(0x04);
+	out8bit(0x07);
+	out8bit(0x04);
+
+	PORTB &= ~(1 << 5);	// d/c -> 0
+
+	// ********************************
+
+
+	SetupHardware();
+
+/*	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);*/
+	GlobalInterruptEnable();
 
 /*	for(int i = 0; i < 128; i++) {*/
 /*		data[i] = (i >> 1);*/
@@ -156,57 +240,6 @@ int main(void)
             TCNT0 = 0;  /* перезапуск таймера 0 */
             TIFR0 = 1;  /* сброс флага срабатывания таймера 0 */
 
-			/* работа с экраном */
-			if (cntScreenReset >= 0) {
-				cntScreenReset++;
-			}
-
-			if (cntScreenReset > 50) {
-				cntScreenReset = -1;
-				PORTB |= (1 << PINB4);
-				canDoWithScreen = 1;
-			}
-
-			if (canDoWithScreen == 1) {
-				canDoWithScreen = 0;
-
-				out9bit(0, 0x20);
-				out9bit(0, 0x90);
-				out9bit(0, 0xa4);
-				out9bit(0, 0x2f);
-				out9bit(0, 0x40);
-				out9bit(0, 0xb0);
-				out9bit(0, 0x10);
-				out9bit(0, 0x00);
-
-				out9bit(0, 0xa1);
-				out9bit(0, 0xac);
-				out9bit(0, 0x07);
-				out9bit(0, 0xaf);
-
-				test1 = 3;
-
-				scrClear();
-
-				out9bit(0,0xA7); 	// инвертированный экран
-				_delay_ms(500);                		// 1/2 Sec delay
-				out9bit(0,0xA6); 	// нормальный экран (не инвертированный)
-				_delay_ms(1000);
-
-				test1 = 7;
-
-				out9bit(1, 0xaa);
-				out9bit(1, 0x11);
-				out9bit(1, 0x22);
-				out9bit(1, 0x33);
-				out9bit(1, 0x77);
-
-				
-
-			}
-
-			/********************/
-
             /* cnt++;*/     // инкремент счетчика - чтобы что-то изменялось
             bt_now = PINC;                  // считывание порта с кнопками
             if (bt_now != bt_old) {         // если состояние порта изменилось
@@ -217,8 +250,15 @@ int main(void)
                     if ((bt_now & 0x10) == 0) {cnt_bt++;}  // верхняя кнопка увеличивает счет нажатий
                     if ((bt_now & 0x20) == 0) {cnt_bt--;}  // а вторая сверху - уменьшает
                 }
-				if ((bt_now & 0x40) == 0) {canDo = 1;}
-				if ((bt_now & 0x80) == 0) {canDo = 0;}
+				if ((bt_now & 0x40) == 0) {
+					canDo = 1;
+					PORTB |= (1 << 6);
+				}
+				if ((bt_now & 0x80) == 0) {
+					canDo = 0;
+					PORTB &= ~(1 << 6);
+				}
+
                 bt_old = bt_now;            // и сохраняем состояние порта для следующей проверки
             }
 
@@ -230,8 +270,7 @@ int main(void)
                     break;
                 case 1 :
 /*                     PORTD = bt_now;            // состояние кнопок*/
-                     /*PORTD = canDo;*/
-                     PORTD = test1;
+                    PORTD = canDo;
                     break;
                 case 2 :
                     PORTD = cnt_bt;  // счетчик нажатий
