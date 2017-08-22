@@ -55,21 +55,32 @@ uint8_t data_PC = 0;
 uint8_t data_device = 0;
 uint8_t canDo = 0;
 uint8_t data[128] = { 0 };
+uint8_t isSpiOn = 0;
 
 void out8bit(uint8_t data8) {
-	PORTB &= ~(1 << 0);		// cs -> 0
 
-	for (uint8_t i = 0; i < 8; i++){
-		PORTB &= ~(1 << 1);		// sclk -> 0
-		if (data8 & 0x80) {
-			PORTB |= (1 << 2);		// data -> 1
-		} else {
-			PORTB &= ~(1 << 2);	// data -> 0
+	if (isSpiOn == 1) {
+		PORTB &= ~(1 << 0);		// cs -> 0
+		SPDR = data8;
+		while (!(SPSR & (1 << SPIF))) ;	// wait for transmit
+		PORTB |= (1 << 0);			// cs -> 1
+
+	} else {
+		/**
+		PORTB &= ~(1 << 0);		// cs -> 0
+		for (uint8_t i = 0; i < 8; i++){
+			PORTB &= ~(1 << 1);		// sclk -> 0
+			if (data8 & 0x80) {
+				PORTB |= (1 << 2);		// data -> 1
+			} else {
+				PORTB &= ~(1 << 2);	// data -> 0
+			}
+			data8 <<= 1;
+			PORTB |= (1 << 1);			// sclk -> 1
 		}
-		data8 <<= 1;
-		PORTB |= (1 << 1);			// sclk -> 1
+		PORTB |= (1 << 0);			// cs -> 1
+		**/
 	}
-	PORTB |= (1 << 0);			// cs -> 1
 }
 
 void scrClear(void)
@@ -107,6 +118,10 @@ int main(void)
 								// 4, 5, 2, 6, 7
 								// маски:
 								// 10, 20, 04, 40, 80
+
+	/* Enable SPI, Master, set clock rate fck/16 */
+	SPCR = (1 << SPE) | (1 << MSTR) | (0 << SPR1) | (0 << SPR0);
+	isSpiOn = 1;
 
 	// ********************************
 
