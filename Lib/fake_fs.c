@@ -39,12 +39,13 @@
  *
  */
 
-enum WriteType {None, ToFile, ToLed};
+enum WriteType {None, ToFile, ToLed, ToSpi};
 
 static enum WriteType writeType = None;
 
 uint32_t nClusters;
 uint32_t lastFileNo;
+uint8_t canSpiFromFile = 0;
 
 #define SIZE_OF_KEY 38
 static const char guidKey[] PROGMEM = "{7065c23a-3818-43c5-bdf0-55567ade31e7}";
@@ -70,10 +71,10 @@ typedef uint8_t * (*ProcedureForRead)(uint8_t *data_buf, uint32_t size, uint32_t
 
 #define SIZE_OF_COMMAND	16
 static const char strToFile[] PROGMEM = "Write to file   ";
-static const char strToLED[] PROGMEM = "Write to LED    ";
+static const char strToSpi[] PROGMEM = "Write to SPI    ";
 static const char strStop[] PROGMEM = "Stop writing    ";
 uint8_t * readToFile(uint8_t *data_buf, uint32_t size, uint32_t offset);
-uint8_t * readToLed(uint8_t *data_buf, uint32_t size, uint32_t offset);
+uint8_t * readToSpi(uint8_t *data_buf, uint32_t size, uint32_t offset);
 uint8_t * readStop(uint8_t *data_buf, uint32_t size, uint32_t offset);
 
 typedef struct {
@@ -90,7 +91,7 @@ static const FileEntry fileTable[] PROGMEM =
     {"USERDATATXT", SIZE_OF_USERDATA, readUserData},
     {"DATA    BIN", SIZE_OF_DATA, readData},
     {"TO_FILE TXT", SIZE_OF_COMMAND, readToFile},
-    {"TO_LED  TXT", SIZE_OF_COMMAND, readToLed},
+    {"TO_SPI  TXT", SIZE_OF_COMMAND, readToSpi},
     {"STOP    TXT", SIZE_OF_COMMAND, readStop},
     {{ 0 }, 0, NULL}
 };
@@ -337,6 +338,39 @@ void process_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBloc
 			for (uint8_t i = 0; i < 16; i++) {
 				data_PC = data_buf[i];
 				PORTD = data_PC;
+			}
+		}
+		break;
+	case ToSpi:
+		if (BlockAddress >= FILES_AREA) {
+			for (uint8_t i = 0; i < 16; i++) {
+				if (!canSpiFromFile) {
+					break;
+				}
+				if ((i & 1) == 0) {
+					switch (data_buf[i]) {
+						case 1:
+							PORTB &= ~(1 << 5);		// d/c -> 0
+							break;
+						case 2:
+							PORTB |= (1 << 5);		// d/c -> 1
+							break;
+						case 3:
+							canSpiFromFile = 0;
+							break;
+						case 4:
+							scrClear();
+							break;
+						default:
+							;
+					}
+				} else {
+					if (canSpiFromFile) {
+						out8bit(data_buf[i]);
+					} else {
+						break;
+					}
+				}
 			}
 		}
 		break;
@@ -713,9 +747,10 @@ uint8_t * readToFile(uint8_t *data_buf, uint32_t size, uint32_t offset) {
     return data_buf;
 }
 
-uint8_t * readToLed(uint8_t *data_buf, uint32_t size, uint32_t offset) {
-	writeType = ToLed;
-	memcpy_P(data_buf, (PGM_P)(&(strToLED[0]) + offset), 16);
+uint8_t * readToSpi(uint8_t *data_buf, uint32_t size, uint32_t offset) {
+	writeType = ToSpi;
+	memcpy_P(data_buf, (PGM_P)(&(strToSpi[0]) + offset), 16);
+	canSpiFromFile = 1;
     return data_buf;
 }
 
