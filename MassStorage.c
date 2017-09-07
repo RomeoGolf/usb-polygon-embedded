@@ -132,7 +132,7 @@ int main(void)
 	PORTB |= (1 << 4);
 
 
-	PORTB &= ~(1 << 0);		// cs -> 0
+	//PORTB &= ~(1 << 0);		// cs -> 0
 
 	// screen init
 	PORTB &= ~(1 << 5);	// d/c -> 0
