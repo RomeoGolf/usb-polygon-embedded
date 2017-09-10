@@ -137,9 +137,10 @@ int main(void)
 	// screen init
 	PORTB &= ~(1 << 5);	// d/c -> 0
 	out8bit(0x21);
-	out8bit(0x80 + 56);
-	out8bit(0x04);
-	out8bit(0x13);
+	/*out8bit(0x80 + 56);*/
+	out8bit(0x80 | 0x10);
+	/*out8bit(0x04);*/
+	/*out8bit(0x13);*/
 	out8bit(0x20);
 	out8bit(0x0c);
 
