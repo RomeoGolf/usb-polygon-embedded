@@ -1,5 +1,20 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
+
+	// разряды порта B - SPI и управление экраном
+	#define BIT_DC   (1 << 5)
+	#define BIT_RES  (1 << 4)
+	#define BIT_SCLK (1 << 1)
+	#define BIT_MOSI (1 << 2)
+	#define BIT_SS   (1 << 0)
+
+	// разряды порта С - кнопки
+	#define BT_1   (1 << 4)
+	#define BT_2   (1 << 5)
+	#define BT_3   (1 << 2)
+	#define BT_4   (1 << 6)
+	#define BT_5   (1 << 7)
+
 	/* variables */
 		extern uint8_t data_PC;
 		extern uint8_t data_device;

@@ -60,40 +60,40 @@ uint8_t isSpiOn = 0;
 void out8bit(uint8_t data8) {
 
 	if (isSpiOn == 1) {
-		PORTB &= ~(1 << 0);		// cs -> 0
+		PORTB &= ~BIT_SS;		// cs -> 0
 		SPDR = data8;
 		while (!(SPSR & (1 << SPIF))) ;	// wait for transmit
-		PORTB |= (1 << 0);			// cs -> 1
+		PORTB |= BIT_SS;			// cs -> 1
 
 	} else {
 		/**
-		PORTB &= ~(1 << 0);		// cs -> 0
+		PORTB &= ~BIT_SS;		// cs -> 0
 		for (uint8_t i = 0; i < 8; i++){
-			PORTB &= ~(1 << 1);		// sclk -> 0
+			PORTB &= ~BIT_SCLK;		// sclk -> 0
 			if (data8 & 0x80) {
-				PORTB |= (1 << 2);		// data -> 1
+				PORTB |= BIT_MOSI;		// data -> 1
 			} else {
-				PORTB &= ~(1 << 2);	// data -> 0
+				PORTB &= ~BIT_MOSI;	// data -> 0
 			}
 			data8 <<= 1;
-			PORTB |= (1 << 1);			// sclk -> 1
+			PORTB |= BIT_SCLK;			// sclk -> 1
 		}
-		PORTB |= (1 << 0);			// cs -> 1
+		PORTB |= BIT_SS;			// cs -> 1
 		**/
 	}
 }
 
 void scrClear(void)
 {
-	PORTB &= ~(1 << 5);	// d/c -> 0
+	PORTB &= ~BIT_DC;	// d/c -> 0
 	out8bit(0x40); // Y = 0
 	out8bit(0x80); // X = 0
 	
 	/* 96 * 65 ? 768 -> 864 */
-	PORTB |= (1 << 5);		// d/c -> 1
+	PORTB |= BIT_DC;		// d/c -> 1
 	/*for(uint16_t i = 0; i < 864; i++) out8bit(0x00);*/
 	for(uint16_t i = 0; i < (96 * 9); i++) out8bit(0x00);
-	PORTB &= ~(1 << 5);	// d/c -> 0
+	PORTB &= ~BIT_DC;	// d/c -> 0
 }
 
 /** Main program entry point. This routine configures the hardware required by the application, then
@@ -108,7 +108,7 @@ int main(void)
 	DDRC = 0x00;     // все линии порта на ввод
     DDRB = 0xFF;     // все линии порта на ввыод
     PORTB = 0x00;    // начальное значение - все нули
-	/*PORTB |= (1 << 0)	// SC -> 1, not active*/
+	/*PORTB |= BIT_SS	// SC -> 1, not active*/
 
     unsigned char cnt_bt = 0;     // счетчик нажатий на кнопки
     unsigned char mode_out = 0;   // режим вывода
@@ -125,17 +125,17 @@ int main(void)
 
 	// ********************************
 
-	/*PORTB |= (1 << 4);*/
+	/*PORTB |= BIT_RES;*/
 	/*_delay_ms(10);*/
-	PORTB &= ~(1 << 4);
+	PORTB &= ~BIT_RES;
 	_delay_ms(10);
-	PORTB |= (1 << 4);
+	PORTB |= BIT_RES;
 
 
-	//PORTB &= ~(1 << 0);		// cs -> 0
+	//PORTB &= ~BIT_SS;		// cs -> 0
 
 	// screen init
-	PORTB &= ~(1 << 5);	// d/c -> 0
+	PORTB &= ~BIT_DC;	// d/c -> 0
 	out8bit(0x21);
 	/*out8bit(0x80 + 56);*/
 	/*out8bit(0x80 | 0x10);*/
@@ -149,30 +149,30 @@ int main(void)
 	scrClear();
 
 	// line on the top
-	PORTB &= ~(1 << 5);	// d/c -> 0
+	PORTB &= ~BIT_DC;	// d/c -> 0
 	out8bit(0x40);
 	out8bit(0x80);
-	PORTB |= (1 << 5);		// d/c -> 1
+	PORTB |= BIT_DC;		// d/c -> 1
 	for (uint8_t i = 0; i < 96; i++) {
 		out8bit(0x02);
 	}
 
 	// line on the bottom
-	PORTB &= ~(1 << 5);	// d/c -> 0
+	PORTB &= ~BIT_DC;	// d/c -> 0
 	out8bit(0x47);
 	out8bit(0x80);
-	PORTB |= (1 << 5);		// d/c -> 1
+	PORTB |= BIT_DC;		// d/c -> 1
 	for (uint8_t i = 0; i < 96; i++) {
 		out8bit(0x80);
 	}
 
 	// position set
-	PORTB &= ~(1 << 5);	// d/c -> 0
+	PORTB &= ~BIT_DC;	// d/c -> 0
 	out8bit(0x43);
 	out8bit(0x80 | 0x28);
 
 	// data out
-	PORTB |= (1 << 5);		// d/c -> 1
+	PORTB |= BIT_DC;		// d/c -> 1
 
 	out8bit(0x00);
 	out8bit(0x00);
@@ -192,10 +192,10 @@ int main(void)
 	out8bit(0x00);
 	out8bit(0x00);
 
-	PORTB &= ~(1 << 5);		// d/c -> 0
+	PORTB &= ~BIT_DC;		// d/c -> 0
 	out8bit(0x44);
 	out8bit(0x80 | 0x28);
-	PORTB |= (1 << 5);		// d/c -> 1
+	PORTB |= BIT_DC;		// d/c -> 1
 
 	out8bit(0x04);
 	out8bit(0x06);
@@ -215,7 +215,7 @@ int main(void)
 	out8bit(0x07);
 	out8bit(0x04);
 
-	PORTB &= ~(1 << 5);	// d/c -> 0
+	PORTB &= ~BIT_DC;	// d/c -> 0
 
 	// ********************************
 
@@ -261,18 +261,18 @@ int main(void)
             /* cnt++;*/     // инкремент счетчика - чтобы что-то изменялось
             bt_now = PINC;                  // считывание порта с кнопками
             if (bt_now != bt_old) {         // если состояние порта изменилось
-                if ((bt_now & 0x30) == 0) { // если нажаты сразу две верхние кнопки на разрядах 3 и 4
+                if ((bt_now & (BT_1 | BT_2)) == 0) { // если нажаты сразу две верхние кнопки на разрядах 3 и 4
                     mode_out++;             // циклически изменить режим отображения,
                     mode_out = mode_out & 3;// которых всего 4 - 0, 1, 2 и 3 (2 разряда по маске)
                 } else {                    // в противном случае
-                    if ((bt_now & 0x10) == 0) {cnt_bt++;}  // верхняя кнопка увеличивает счет нажатий
-                    if ((bt_now & 0x20) == 0) {cnt_bt--;}  // а вторая сверху - уменьшает
+                    if ((bt_now & BT_1) == 0) {cnt_bt++;}  // верхняя кнопка увеличивает счет нажатий
+                    if ((bt_now & BT_2) == 0) {cnt_bt--;}  // а вторая сверху - уменьшает
                 }
-				if ((bt_now & 0x40) == 0) {
+				if ((bt_now & BT_4) == 0) {
 					canDo = 1;
 					PORTB |= (1 << 6);
 				}
-				if ((bt_now & 0x80) == 0) {
+				if ((bt_now & BT_5) == 0) {
 					canDo = 0;
 					PORTB &= ~(1 << 6);
 				}

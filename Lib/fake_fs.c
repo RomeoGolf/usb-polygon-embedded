@@ -350,10 +350,10 @@ void process_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBloc
 				if ((i & 1) == 0) {
 					switch (data_buf[i]) {
 						case 1:
-							PORTB &= ~(1 << 5);		// d/c -> 0
+							PORTB &= ~BIT_DC;		// d/c -> 0
 							break;
 						case 2:
-							PORTB |= (1 << 5);		// d/c -> 1
+							PORTB |= BIT_DC;		// d/c -> 1
 							break;
 						case 3:
 							canSpiFromFile = 0;
