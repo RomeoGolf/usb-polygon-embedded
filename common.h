@@ -2,11 +2,12 @@
 #define _COMMON_H_
 
 	// разряды порта B - SPI и управление экраном
-	#define BIT_DC   (1 << 5)
-	#define BIT_RES  (1 << 4)
+	#define BIT_SS   (1 << 0)
 	#define BIT_SCLK (1 << 1)
 	#define BIT_MOSI (1 << 2)
-	#define BIT_SS   (1 << 0)
+	#define BIT_MISO (1 << 3)
+	#define BIT_RES  (1 << 4)
+	#define BIT_DC   (1 << 5)
 
 	// разряды порта С - кнопки
 	#define BT_1   (1 << 4)
