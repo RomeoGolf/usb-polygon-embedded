@@ -119,8 +119,9 @@ int main(void)
 								// маски:
 								// 10, 20, 04, 40, 80
 
-	/* Enable SPI, Master, set clock rate fck/16 */
+	/* Enable SPI, Master, set clock rate fck/2 (4 MHz) */
 	SPCR = (1 << SPE) | (1 << MSTR) | (0 << SPR1) | (0 << SPR0);
+	SPSR = (1 << SPI2X);
 	isSpiOn = 1;
 
 	// ********************************
