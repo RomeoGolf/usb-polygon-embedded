@@ -41,6 +41,27 @@
 
 #include <util/delay.h>
 
+/* =============================================================== */
+/* MMC card commands                                               */
+/* =============================================================== */
+/* Standart card commands CMDx */
+#define MMC_COMMANDS_BASE       (unsigned char) 0x40
+#define MMC_GO_IDLE_STATE       MMC_COMMANDS_BASE + 0         // CMD0
+#define MMC_SEND_OP_COND        MMC_COMMANDS_BASE + 1         // CMD1
+#define MMC_SEND_IF_COND        MMC_COMMANDS_BASE + 8         // CMD8
+#define MMC_SEND_CSD            MMC_COMMANDS_BASE + 9         // CMD9
+#define MMC_SEND_CID            MMC_COMMANDS_BASE + 10        // CMD10
+#define MMC_SEND_STATUS         MMC_COMMANDS_BASE + 13        // CMD13
+#define MMC_READ_SINGLE_BLOCK   MMC_COMMANDS_BASE + 17        // CMD17
+#define MMC_WRITE_SINGLE_BLOCK  MMC_COMMANDS_BASE + 24        // CMD24
+#define MMC_APP_CMD             MMC_COMMANDS_BASE + 55        // CMD55
+#define MMC_READ_OCR            MMC_COMMANDS_BASE + 58        // CMD58
+// Application specific command ACMDx
+#define MMC_CMD_SD_STATUS       MMC_COMMANDS_BASE + 13        // ACMD13
+#define MMC_CMD_SD_SEND_OP_COND MMC_COMMANDS_BASE + 41        // ACMD41
+#define MMC_CMD_SD_SEND_SCR     MMC_COMMANDS_BASE + 51        // ACMD51
+
+
 /** Structure to hold the latest Command Block Wrapper issued by the host, containing a SCSI command to execute. */
 MS_CommandBlockWrapper_t  CommandBlock;
 
@@ -57,6 +78,62 @@ uint8_t canDo = 0;
 uint8_t data[128] = { 0 };
 uint8_t isSpiOn = 0;
 
+/* ---------------------------- */
+/* for work with the SD card */
+
+enum ResponceType {R1, R2, R3, R7};
+uint8_t sdResponce[5];
+
+void SdOutByte(uint8_t data8) {
+	PORTB &= ~BIT_CS_SD;			// cs -> 0
+	SPDR = data8;
+	while (!(SPSR & (1 << SPIF))) ;	// wait for transmit
+	PORTB |= BIT_CS_SD;				// cs -> 1
+}
+
+uint8_t SdInByte(void) {
+	PORTB &= ~BIT_CS_SD;			// cs -> 0
+	SPDR = 0xFF;
+	while (!(SPSR & (1 << SPIF))) ;	// wait for transmit
+	PORTB |= BIT_CS_SD;				// cs -> 1
+	return SPDR;
+}
+
+void SdSendCommand(uint8_t Index, uint32_t Argument, uint8_t Crc, enum ResponceType responceType, uint8_t *Responce) {
+	SdOutByte(0xFF);
+	SdOutByte(Index);
+	SdOutByte((uint8_t)(Argument >> 24));
+	SdOutByte((uint8_t)(Argument >> 16));
+	SdOutByte((uint8_t)(Argument >> 8));
+	SdOutByte((uint8_t)(Argument >> 0));
+	SdOutByte(Crc);
+
+	uint8_t cntErr = 0xFF;
+	do {
+		Responce[0] = SdInByte();
+	} while ((cntErr-- != 0) && ((Responce[0] & 0x80) != 0));
+
+	switch(responceType) {
+		case R1:
+			return;
+		case R2:
+			Responce[1] = SdInByte();
+			return;
+		case R3:
+		case R7:
+			Responce[4] = SdInByte();
+			Responce[3] = SdInByte();
+			Responce[2] = SdInByte();
+			Responce[1] = SdInByte();
+			return;
+	}
+}
+
+/* ---------------------------- */
+
+
+/* ---------------------------- */
+/* for work with the LCD screen */
 void out8bit(uint8_t data8) {
 
 	if (isSpiOn == 1) {
@@ -95,6 +172,7 @@ void scrClear(void)
 	for(uint16_t i = 0; i < (96 * 9); i++) out8bit(0x00);
 	PORTB &= ~BIT_DC;	// d/c -> 0
 }
+/* ---------------------------- */
 
 /** Main program entry point. This routine configures the hardware required by the application, then
  *  enters a loop to run the application tasks in sequence.
@@ -104,10 +182,13 @@ int main(void)
 
     PORTD = 0x00;    // начальное значение - все нули
     DDRD = 0xFF;     // все линии порта на вывод
+	/* Port C : buttons */
     PORTC = 0x00;    // без "подтяжки" (есть внешняя)
 	DDRC = 0x00;     // все линии порта на ввод
-    DDRB = 0xFF;     // все линии порта на вывод
-    PORTB = 0x00;    // начальное значение - все нули
+
+	/* SPI : LCD screen & SD card */
+    DDRB = 0xFF & ~BIT_MISO;     // конфигурация порта на ввод/вывод
+    PORTB = 0x00 | BIT_CS_SD;    // начальное значение
 	/*PORTB |= BIT_SS	// SC -> 1, not active*/
 
     unsigned char cnt_bt = 0;     // счетчик нажатий на кнопки
@@ -125,6 +206,7 @@ int main(void)
 	isSpiOn = 1;
 
 	// ********************************
+	/* screen */
 
 	/*PORTB |= BIT_RES;*/
 	/*_delay_ms(10);*/
@@ -217,6 +299,39 @@ int main(void)
 	out8bit(0x04);
 
 	PORTB &= ~BIT_DC;	// d/c -> 0
+
+	// ********************************
+	/* SD card */
+
+	/* > 74 clk to init */
+	for (uint8_t i = 0; i < 10; i++) {
+		SdOutByte(0xFF);
+	}
+
+	SdSendCommand(MMC_GO_IDLE_STATE, 0, 0x95, R1, sdResponce);
+	PORTD = sdResponce[0];
+
+	uint16_t cntErr = 0x7FF;
+
+	if(sdResponce[0] == 0x01) {
+		do {
+			SdSendCommand(MMC_SEND_OP_COND, 0, 0, R1, sdResponce);
+		} while ((sdResponce[0] != 0) && (cntErr-- != 0));
+
+		PORTD = 0x1C;
+		/*PORTD = sdResponce[0];*/
+
+		if (sdResponce[0] != 0) {
+			PORTD = 0x55;
+		}
+
+
+	} else {
+		/* error! */
+		PORTD = 0xAA;
+	}
+
+	for(;;){}
 
 	// ********************************
 
