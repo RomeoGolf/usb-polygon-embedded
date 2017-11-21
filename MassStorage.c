@@ -403,7 +403,7 @@ int main(void)
 
 	if(sdResponce[0] == 0x01) {
 		do {
-			SdSendCommand(MMC_SEND_OP_COND, 0, 0, R1, sdResponce);
+			SdSendCommand(MMC_SEND_OP_COND, 0, 1, R1, sdResponce);
 		} while ((sdResponce[0] != 0) && (cntErr-- != 0));
 
 		PORTD = 0x1C;
