@@ -61,6 +61,11 @@
 #define MMC_CMD_SD_SEND_OP_COND MMC_COMMANDS_BASE + 41        // ACMD41
 #define MMC_CMD_SD_SEND_SCR     MMC_COMMANDS_BASE + 51        // ACMD51
 
+//=====================================================================================//
+// MMC data tokens                                                                     //
+//=====================================================================================//
+#define MMC_START_TOKEN_SINGLE (unsigned char) 0xFE
+//=====================================================================================//
 
 /** Structure to hold the latest Command Block Wrapper issued by the host, containing a SCSI command to execute. */
 MS_CommandBlockWrapper_t  CommandBlock;
