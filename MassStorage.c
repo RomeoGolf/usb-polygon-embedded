@@ -86,6 +86,7 @@ uint8_t isSpiOn = 0;
 /* ---------------------------- */
 /* for work with the SD card */
 
+enum RegType {CID, CSD};
 enum ResponceType {R1, R2, R3, R7};
 uint8_t sdResponce[5];
 
@@ -132,6 +133,88 @@ void SdSendCommand(uint8_t Index, uint32_t Argument, uint8_t Crc, enum ResponceT
 			Responce[1] = SdInByte();
 			return;
 	}
+}
+
+bool SdWaitForDataToken(void)
+{
+  uint8_t answer;
+  uint8_t maxErrors = 0xFF;
+
+  do {
+	  answer = SdInByte();
+  } while ((maxErrors--)&&(answer != MMC_START_TOKEN_SINGLE));
+
+  if (answer != MMC_START_TOKEN_SINGLE)
+  {
+	  return false;
+  } else {
+	  return true;
+  }
+}
+
+bool SdReadReg(enum RegType regType, uint8_t * buffer)
+{
+	switch (regType) {
+		case CID:
+			SdSendCommand(MMC_SEND_CID, 0, 1, R1, sdResponce);
+			break;
+		case CSD:
+			SdSendCommand(MMC_SEND_CSD, 0, 1, R1, sdResponce);
+			break;
+		default:
+			return false;
+	}
+	if (sdResponce[0] == 0x00) {
+		if (SdWaitForDataToken()) {
+			for (uint8_t i = 0; i < 16; i++) {
+				buffer[i] = SdInByte();
+			}
+			SdOutByte(0xFF);
+			SdOutByte(0xFF);
+			return true;
+		} else {
+			return false;
+		}
+  } else {
+	  return false;
+  }
+}
+
+bool SdReadDataBlock(uint32_t address, uint32_t size, uint8_t * buffer)
+{
+	SdSendCommand(MMC_READ_SINGLE_BLOCK, address, 1, R1, sdResponce);
+	if (sdResponce[0] == 0x00) {
+		if (SdWaitForDataToken()) {
+			for (uint8_t i = 0; i < size; i++) {
+				buffer[i] = SdInByte();
+			}
+			return true;
+		} else {
+			return false;
+		}
+  } else {
+	  return false;
+  }
+}
+
+bool SdWriteDataBlock(uint32_t address, uint32_t size, uint8_t * buffer)
+{
+	SdSendCommand(MMC_WRITE_SINGLE_BLOCK, address, 1, R1, sdResponce);
+	if (sdResponce[0] == 0x00) {
+		SdOutByte(0xFF);
+		SdOutByte(0xFF);
+		SdOutByte(MMC_START_TOKEN_SINGLE);
+		for (uint8_t i = 0; i < size; i++) {
+			SdOutByte(buffer[i]);
+		}
+		SdOutByte(0xFF);	/* intstead CRC */
+		SdOutByte(0xFF);
+		SdInByte();			/* Data Responce */
+		while(SdInByte() == 0x00);
+		return true;
+  } else {
+	  return false;
+  }
 }
 
 /* ---------------------------- */
