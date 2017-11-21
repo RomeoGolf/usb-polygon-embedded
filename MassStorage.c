@@ -71,7 +71,7 @@ MS_CommandStatusWrapper_t CommandStatus = { .Signature = MS_CSW_SIGNATURE };
 /** Flag to asynchronously abort any in-progress data transfers upon the reception of a mass storage reset command. */
 volatile bool IsMassStoreReset = false;
 
-unsigned char cnt = 0;			// просто счетчик
+uint8_t cnt = 0;			// просто счетчик
 uint8_t data_PC = 0;
 uint8_t data_device = 0;
 uint8_t canDo = 0;
