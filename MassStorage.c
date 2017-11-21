@@ -429,9 +429,12 @@ int main(void)
 /*	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);*/
 	GlobalInterruptEnable();
 
-/*	for(int i = 0; i < 128; i++) {*/
-/*		data[i] = (i >> 1);*/
-/*	}*/
+	for(int i = 0; i < 128; i++) {
+		/*data[i] = (i >> 1);*/
+		data[i] = 0x0F;
+	}
+
+	SdReadReg(/*CID*/ CSD/**/, data);
 
     /* запуск таймера 0 на период ~0.01 с */
     /* (защита от дребезга) */
