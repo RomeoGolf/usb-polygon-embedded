@@ -77,6 +77,9 @@ uint8_t * readToFile(uint8_t *data_buf, uint32_t size, uint32_t offset);
 uint8_t * readToSpi(uint8_t *data_buf, uint32_t size, uint32_t offset);
 uint8_t * readStop(uint8_t *data_buf, uint32_t size, uint32_t offset);
 
+#define SIZE_OF_SD		0x100000
+uint8_t * readSD(uint8_t *data_buf, uint32_t size, uint32_t offset);
+
 typedef struct {
   char name[11];
   uint32_t size;
@@ -93,6 +96,7 @@ static const FileEntry fileTable[] PROGMEM =
     {"TO_FILE TXT", SIZE_OF_COMMAND, readToFile},
     {"TO_SPI  TXT", SIZE_OF_COMMAND, readToSpi},
     {"STOP    TXT", SIZE_OF_COMMAND, readStop},
+    {"SD      BIN", SIZE_OF_SD, readSD},
     {{ 0 }, 0, NULL}
 };
 
@@ -760,3 +764,16 @@ uint8_t * readStop(uint8_t *data_buf, uint32_t size, uint32_t offset) {
     return data_buf;
 }
 
+uint8_t * readSD(uint8_t *data_buf, uint32_t size, uint32_t offset) {
+    /*if ((offset + 16) > SIZE_OF_DATA) {*/
+		/*memset(data_buf, 0, 16);*/
+	/*}*/
+
+	SdReadDataBlock(offset, 16, data_buf);
+
+	/*if (offset < SIZE_OF_DATA) memcpy(data_buf, &(data[0]) + offset, SIZE_OF_DATA - offset);*/
+    /*} else {*/
+		/*memcpy(data_buf, &(data[0]) + offset, 16);*/
+    /*}*/
+    return data_buf;
+}
