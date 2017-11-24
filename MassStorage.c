@@ -183,17 +183,21 @@ bool SdReadReg(enum RegType regType, uint8_t * buffer)
 
 bool SdReadDataBlock(uint32_t address, uint32_t size, uint8_t * buffer)
 {
+	SdSendCommand(MMC_SET_BLOCK_LEN, size, 1, R1, sdResponce);
 	SdSendCommand(MMC_READ_SINGLE_BLOCK, address, 1, R1, sdResponce);
 	if (sdResponce[0] == 0x00) {
 		if (SdWaitForDataToken()) {
 			for (uint8_t i = 0; i < size; i++) {
 				buffer[i] = SdInByte();
 			}
+			data_device = 1;
 			return true;
 		} else {
+			data_device = 2;
 			return false;
 		}
   } else {
+			data_device = 3;
 	  return false;
   }
 }
@@ -281,7 +285,7 @@ int main(void)
 	/*PORTB |= BIT_SS	// SC -> 1, not active*/
 
     unsigned char cnt_bt = 0;     // счетчик нажатий на кнопки
-    unsigned char mode_out = 0;   // режим вывода
+    unsigned char mode_out = 1;   // режим вывода
     unsigned char bt_now = 0;     // состояние кнопок
     unsigned char bt_old = 0;     // состояние кнопок в прошлый раз
 								// разряды кнопок сверху вниз:
@@ -435,7 +439,11 @@ int main(void)
 		data[i] = 0x0F;
 	}
 
-	SdReadReg(/*CID*/ CSD/**/, data);
+
+	/*SdSendCommand(MMC_SET_BLOCK_LEN, 128, 1, R1, sdResponce);*/
+
+	//SdReadReg([>CID*/ CSD/*<], data);
+	SdReadDataBlock(0, 128, data);
 
     /* запуск таймера 0 на период ~0.01 с */
     /* (защита от дребезга) */
@@ -488,7 +496,7 @@ int main(void)
                 bt_old = bt_now;            // и сохраняем состояние порта для следующей проверки
             }
 
-			data_device = cnt_bt;
+			/*data_device = cnt_bt;*/
 
             switch (mode_out) {
                 case 0 :
@@ -496,7 +504,8 @@ int main(void)
                     break;
                 case 1 :
 /*                     PORTD = bt_now;            // состояние кнопок*/
-                    PORTD = canDo;
+                    /*PORTD = canDo;*/
+                    PORTD = data_device;
                     break;
                 case 2 :
                     PORTD = cnt_bt;  // счетчик нажатий
