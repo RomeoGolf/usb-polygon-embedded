@@ -52,6 +52,7 @@
 #define MMC_SEND_CSD            MMC_COMMANDS_BASE + 9         // CMD9
 #define MMC_SEND_CID            MMC_COMMANDS_BASE + 10        // CMD10
 #define MMC_SEND_STATUS         MMC_COMMANDS_BASE + 13        // CMD13
+#define MMC_SET_BLOCK_LEN       MMC_COMMANDS_BASE + 16        // CMD13
 #define MMC_READ_SINGLE_BLOCK   MMC_COMMANDS_BASE + 17        // CMD17
 #define MMC_WRITE_SINGLE_BLOCK  MMC_COMMANDS_BASE + 24        // CMD24
 #define MMC_APP_CMD             MMC_COMMANDS_BASE + 55        // CMD55
