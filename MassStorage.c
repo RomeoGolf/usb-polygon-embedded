@@ -55,6 +55,11 @@
 #define MMC_SET_BLOCK_LEN       MMC_COMMANDS_BASE + 16        // CMD13
 #define MMC_READ_SINGLE_BLOCK   MMC_COMMANDS_BASE + 17        // CMD17
 #define MMC_WRITE_SINGLE_BLOCK  MMC_COMMANDS_BASE + 24        // CMD24
+
+#define MMC_ERASE_WR_BLK_START  MMC_COMMANDS_BASE + 32        // CMD24
+#define MMC_ERASE_WR_BLK_END 	MMC_COMMANDS_BASE + 33        // CMD24
+#define MMC_ERASE				MMC_COMMANDS_BASE + 38        // CMD24
+
 #define MMC_APP_CMD             MMC_COMMANDS_BASE + 55        // CMD55
 #define MMC_READ_OCR            MMC_COMMANDS_BASE + 58        // CMD58
 // Application specific command ACMDx
@@ -443,7 +448,13 @@ int main(void)
 	/*SdSendCommand(MMC_SET_BLOCK_LEN, 128, 1, R1, sdResponce);*/
 
 	//SdReadReg([>CID*/ CSD/*<], data);
-	SdReadDataBlock(0, 128, data);
+	/*SdReadDataBlock(0, 128, data);*/
+
+
+	SdSendCommand(MMC_ERASE_WR_BLK_START, 0x0, 1, R1, sdResponce);
+	SdSendCommand(MMC_ERASE_WR_BLK_END, 0x800, 1, R1, sdResponce);
+	SdSendCommand(MMC_ERASE, 0, 1, R1, sdResponce);
+
 
     /* запуск таймера 0 на период ~0.01 с */
     /* (защита от дребезга) */
