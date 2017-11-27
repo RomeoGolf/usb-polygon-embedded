@@ -221,8 +221,10 @@ bool SdWriteDataBlock(uint32_t address, uint32_t size, uint8_t * buffer)
 		SdOutByte(0xFF);
 		SdInByte();			/* Data Responce */
 		while(SdInByte() == 0x00);
+		data_device = 1;
 		return true;
   } else {
+	  data_device = 2;
 	  return false;
   }
 }
@@ -440,8 +442,8 @@ int main(void)
 	GlobalInterruptEnable();
 
 	for(int i = 0; i < 128; i++) {
-		/*data[i] = (i >> 1);*/
-		data[i] = 0x0F;
+		data[i] = (i + 5);
+		/*data[i] = 0x0F;*/
 	}
 
 
@@ -451,9 +453,13 @@ int main(void)
 	/*SdReadDataBlock(0, 128, data);*/
 
 
-	SdSendCommand(MMC_ERASE_WR_BLK_START, 0x0, 1, R1, sdResponce);
-	SdSendCommand(MMC_ERASE_WR_BLK_END, 0x800, 1, R1, sdResponce);
-	SdSendCommand(MMC_ERASE, 0, 1, R1, sdResponce);
+	/*SdSendCommand(MMC_ERASE_WR_BLK_START, 0x0, 1, R1, sdResponce);*/
+	/*SdSendCommand(MMC_ERASE_WR_BLK_END, 0x800, 1, R1, sdResponce);*/
+	/*SdSendCommand(MMC_ERASE, 0, 1, R1, sdResponce);*/
+
+	SdSendCommand(MMC_SET_BLOCK_LEN, 128, 1, R1, sdResponce);
+	/*SdWriteDataBlock(0x51b00, 128, data);*/
+	SdWriteDataBlock(0x000, 128, data);
 
 
     /* запуск таймера 0 на период ~0.01 с */
