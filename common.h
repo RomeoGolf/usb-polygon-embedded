@@ -25,4 +25,5 @@
 		extern void out8bit(uint8_t data8);
 		extern void scrClear(void);
 		extern bool SdReadDataBlock(uint32_t address, uint32_t size, uint8_t * buffer);
+		extern bool SdWriteDataBlock(uint32_t address, uint32_t size, uint8_t * buffer);
 #endif // _COMMON_H_

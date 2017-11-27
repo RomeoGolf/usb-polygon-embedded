@@ -209,6 +209,7 @@ bool SdReadDataBlock(uint32_t address, uint32_t size, uint8_t * buffer)
 
 bool SdWriteDataBlock(uint32_t address, uint32_t size, uint8_t * buffer)
 {
+	SdSendCommand(MMC_SET_BLOCK_LEN, size, 1, R1, sdResponce);
 	SdSendCommand(MMC_WRITE_SINGLE_BLOCK, address, 1, R1, sdResponce);
 	if (sdResponce[0] == 0x00) {
 		SdOutByte(0xFF);
@@ -457,9 +458,9 @@ int main(void)
 	/*SdSendCommand(MMC_ERASE_WR_BLK_END, 0x800, 1, R1, sdResponce);*/
 	/*SdSendCommand(MMC_ERASE, 0, 1, R1, sdResponce);*/
 
-	SdSendCommand(MMC_SET_BLOCK_LEN, 128, 1, R1, sdResponce);
+	/*SdSendCommand(MMC_SET_BLOCK_LEN, 128, 1, R1, sdResponce);*/
 	/*SdWriteDataBlock(0x51b00, 128, data);*/
-	SdWriteDataBlock(0x000, 128, data);
+	/*SdWriteDataBlock(0x000, 122, data);*/
 
 
     /* запуск таймера 0 на период ~0.01 с */

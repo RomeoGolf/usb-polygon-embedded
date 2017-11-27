@@ -335,6 +335,10 @@ void process_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBloc
 					data[ind++] = data_buf[i];
 				}
 			}
+			if (ind == 128) {
+				ind++;
+				SdWriteDataBlock(0x000, 128, data);
+			}
 		}
 		break;
 	case ToLed:
