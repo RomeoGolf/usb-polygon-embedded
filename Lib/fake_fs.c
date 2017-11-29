@@ -326,20 +326,64 @@ uint8_t * prepare_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesI
 }
 
 void process_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlockDiv16){
-	static uint8_t ind = 0;
+	static uint16_t ind = 0;
+	static uint8_t canToFile = 1;
+	static uint8_t cnt = 0;
 
 	switch (writeType){
 	case ToFile:
-		if (BlockAddress >= FILES_AREA) {
-			if (ind < 128) {
-				for (uint8_t i = 0; i < 16; i++) {
-					data[ind++] = data_buf[i];
+		if ((BlockAddress >= FILES_AREA) &&(canToFile == 1)) {
+			if (ind == 0) {
+				SdSendCommand(MMC_SET_BLOCK_LEN, 512, 0x1, R1, sdResponce);
+				SdSendCommand(MMC_WRITE_SINGLE_BLOCK, (512 * cnt) + 0, 0x1, R1, sdResponce);
+				if (sdResponce[0] == 0x00) {
+					canToFile = 1;
+					SdOutByte(0xFF);
+					SdOutByte(0xFF);
+					SdOutByte(MMC_START_TOKEN_SINGLE);
+					/*ind++;*/
+					/*PORTD = 0x7E;*/
+					/*for (;;){}*/
+				} else {
+					canToFile = 1;
+					/*PORTD = sdResponce[0];*/
+					/*PORTD = 0x7E;*/
+					/*PORTD = 0x7E;*/
+					/*for (;;){}*/
 				}
 			}
-			if (ind == 128) {
+			if ((canToFile == 1) && (ind >= 0) && (ind < 32)) {
+				for (uint8_t i = 0; i < 16; i++) {
+					SdOutByte(data_buf[i]);
+				}
 				ind++;
-				SdWriteDataBlock(0x000, 128, data);
 			}
+			if ((canToFile == 1) && (ind == 32 )) {
+				/*ind++;*/
+				/*if (cnt < 1) {*/
+					/*ind = 0;*/
+				/*} else {*/
+					/*ind++;*/
+					/*canToFile = 0;*/
+				/*}*/
+
+				ind = 0;
+				cnt++;
+				if (cnt > 11) {
+					canToFile = 0;
+				}
+
+
+				SdOutByte(0xFF);	/* intstead CRC */
+				SdOutByte(0xFF);
+				uint8_t tmp = SdInByte();			/* Data Responce */
+					/*PORTD = tmp;*/
+					/*PORTD = 0x7E;*/
+					/*for (;;){}*/
+				while(SdInByte() == 0x00);
+			}
+
+
 		}
 		break;
 	case ToLed:
