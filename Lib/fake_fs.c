@@ -77,7 +77,8 @@ uint8_t * readToFile(uint8_t *data_buf, uint32_t size, uint32_t offset);
 uint8_t * readToSpi(uint8_t *data_buf, uint32_t size, uint32_t offset);
 uint8_t * readStop(uint8_t *data_buf, uint32_t size, uint32_t offset);
 
-#define SIZE_OF_SD		0x100000
+/*#define SIZE_OF_SD		0x100000*/
+#define SIZE_OF_SD		0x2000
 uint8_t * readSD(uint8_t *data_buf, uint32_t size, uint32_t offset);
 
 typedef struct {
