@@ -326,7 +326,7 @@ uint8_t * prepare_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesI
 }
 
 void process_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBlockDiv16){
-	static uint16_t ind = 0;
+	static uint8_t ind = 0;
 	static uint8_t canToFile = 1;
 	static uint8_t cnt = 0;
 
