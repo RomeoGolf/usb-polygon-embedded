@@ -341,15 +341,8 @@ void process_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBloc
 					SdOutByte(0xFF);
 					SdOutByte(0xFF);
 					SdOutByte(MMC_START_TOKEN_SINGLE);
-					/*ind++;*/
-					/*PORTD = 0x7E;*/
-					/*for (;;){}*/
 				} else {
 					canToFile = 1;
-					/*PORTD = sdResponce[0];*/
-					/*PORTD = 0x7E;*/
-					/*PORTD = 0x7E;*/
-					/*for (;;){}*/
 				}
 			}
 			if ((canToFile == 1) && (ind >= 0) && (ind < 32)) {
@@ -359,31 +352,16 @@ void process_data(uint8_t * data_buf, uint32_t BlockAddress, uint8_t BytesInBloc
 				ind++;
 			}
 			if ((canToFile == 1) && (ind == 32 )) {
-				/*ind++;*/
-				/*if (cnt < 1) {*/
-					/*ind = 0;*/
-				/*} else {*/
-					/*ind++;*/
-					/*canToFile = 0;*/
-				/*}*/
-
 				ind = 0;
 				cnt++;
 				if (cnt > 11) {
 					canToFile = 0;
 				}
-
-
 				SdOutByte(0xFF);	/* intstead CRC */
 				SdOutByte(0xFF);
-				uint8_t tmp = SdInByte();			/* Data Responce */
-					/*PORTD = tmp;*/
-					/*PORTD = 0x7E;*/
-					/*for (;;){}*/
+				SdInByte();			/* Data Responce */
 				while(SdInByte() == 0x00);
 			}
-
-
 		}
 		break;
 	case ToLed:
