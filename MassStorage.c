@@ -260,13 +260,17 @@ int main(void)
 	/*PORTB |= BIT_SS	// SC -> 1, not active*/
 
     unsigned char cnt_bt = 0;     // счетчик нажатий на кнопки
-    unsigned char mode_out = 1;   // режим вывода
+    unsigned char mode_out = 0;   // режим вывода
+    unsigned char mode_out_old = 0;   // режим вывода
     unsigned char bt_now = 0;     // состояние кнопок
     unsigned char bt_old = 0;     // состояние кнопок в прошлый раз
 								// разряды кнопок сверху вниз:
 								// 4, 5, 2, 6, 7
 								// маски:
 								// 10, 20, 04, 40, 80
+    int8_t cnt20 = 0;  // счетчик для циферблата
+    int8_t cnt20old = -1;
+    uint8_t canDoOld = 0;  // для определения момента включения
 
 	/* Enable SPI, Master, set clock rate fck/2 (4 MHz) */
 	SPCR = (1 << SPE) | (1 << MSTR) | (0 << SPR1) | (0 << SPR0);
@@ -466,8 +470,16 @@ int main(void)
                     mode_out++;             // циклически изменить режим отображения,
                     mode_out = mode_out & 3;// которых всего 4 - 0, 1, 2 и 3 (2 разряда по маске)
                 } else {                    // в противном случае
-                    if ((bt_now & BT_1) == 0) {cnt_bt++;}  // верхняя кнопка увеличивает счет нажатий
-                    if ((bt_now & BT_2) == 0) {cnt_bt--;}  // а вторая сверху - уменьшает
+                    if ((bt_now & BT_1) == 0) {  // верхняя кнопка увеличивает счет нажатий
+                        cnt_bt++;
+                        cnt20++;
+                        if (cnt20 >= 20) {cnt20 = 0;}
+                    }
+                    if ((bt_now & BT_2) == 0) {  // а вторая сверху - уменьшает
+                        cnt_bt--;
+                        cnt20--;
+                        if (cnt20 < 0) {cnt20 = 19;}
+                    }
                 }
 				if ((bt_now & BT_4) == 0) {
 					canDo = 1;
@@ -479,6 +491,51 @@ int main(void)
 				}
 
                 bt_old = bt_now;            // и сохраняем состояние порта для следующей проверки
+            }
+
+            if (canDo == 1) {
+                if (canDoOld == 0) {
+                    canDoOld = 1;
+                    mode_out_old = mode_out;
+                    mode_out = 2;
+                    scrClear();
+                }
+                if (cnt20 != cnt20old) {
+                    cnt20old = cnt20;
+                    uint32_t addr = cnt20 << 7;
+                    uint32_t size = 2;
+                    uint8_t forScreen[2];
+					bool canOut = false;
+                    for (uint8_t i = 0; i < (128 / 2); i++) {
+                        SdReadDataBlock(addr++, size, forScreen);
+                        addr++;
+                        switch (forScreen[0]) {
+                            case 1:
+								PORTB &= ~BIT_DC;		// d/c -> 0
+								canOut = true;
+								break;
+							case 2:
+								PORTB |= BIT_DC;		// d/c -> 1
+								canOut = true;
+								break;
+							case 3:
+								canOut = false;
+								break;
+							case 4:
+								scrClear();
+								canOut = false;
+                                break;
+                            default:
+                                ;
+                        }
+						if (forScreen[0] == 3) {break;}
+                        if (canOut) {out8bit(forScreen[1]);}
+                    }
+                }
+
+            } else {
+                canDoOld = 0;
+                mode_out = mode_out_old;
             }
 
 			/*data_device = cnt_bt;*/
@@ -493,7 +550,8 @@ int main(void)
                     PORTD = data_device;
                     break;
                 case 2 :
-                    PORTD = cnt_bt;  // счетчик нажатий
+                    /*PORTD = cnt_bt;  // счетчик нажатий*/
+                    PORTD = cnt20;
                     break;
                 default:
                     PORTD = data_PC;
