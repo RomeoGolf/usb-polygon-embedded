@@ -247,6 +247,10 @@ void scrClear(void)
  */
 int main(void)
 {
+	/* TODO: разобраться с переменными ARCH_AVR8 и AVR8 */
+	/* Disable watchdog if enabled by bootloader/fuses */
+	MCUSR &= ~(1 << WDRF);
+	wdt_disable();
 
     PORTD = 0x00;    // начальное значение - все нули
     DDRD = 0xFF;     // все линии порта на вывод
