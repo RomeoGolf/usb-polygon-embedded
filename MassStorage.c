@@ -450,6 +450,8 @@ int main(void)
     /* разрешение прерываний таймера 1*/
     /*TIMSK1 = (1 << TOIE1);*/
 
+	uint8_t encoderState = 0;
+
 	for (;;)
 	{
 		MassStorage_Task();
@@ -489,6 +491,13 @@ int main(void)
 					canDo = canDo ^ 1;
 					PORTB |= (1 << 6);
 				}
+
+				/* for encoder */
+				uint8_t nowEnc = (bt_now >> 6) & 0x03;
+				encoderState <<= 2;
+				encoderState |= nowEnc;
+				encoderState &= 0x0F;
+				data_device = encoderState;
 
                 bt_old = bt_now;            // и сохраняем состояние порта для следующей проверки
             }
