@@ -493,7 +493,7 @@ int main(void)
                 bt_old = bt_now;            // и сохраняем состояние порта для следующей проверки
             }
 
-            if (canDo == 1) {
+            if (canDo == 1) { /* нет защиты от многократного срабатывания */
                 if (canDoOld == 0) {
                     canDoOld = 1;
                     mode_out_old = mode_out;
