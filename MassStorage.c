@@ -485,13 +485,9 @@ int main(void)
                         if (cnt20 < 0) {cnt20 = 19;}
                     }
                 }
-				if ((bt_now & BT_4) == 0) {
-					canDo = 1;
+				if ((bt_now & BT_3) == 0) {
+					canDo = canDo ^ 1;
 					PORTB |= (1 << 6);
-				}
-				if ((bt_now & BT_5) == 0) {
-					canDo = 0;
-					PORTB &= ~(1 << 6);
 				}
 
                 bt_old = bt_now;            // и сохраняем состояние порта для следующей проверки
