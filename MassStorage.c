@@ -272,8 +272,8 @@ int main(void)
 								// 4, 5, 2, 6, 7
 								// маски:
 								// 10, 20, 04, 40, 80
-    int8_t cnt20 = 0;  // счетчик для циферблата
-    int8_t cnt20old = -1;
+    int8_t cnt18 = 0;  // счетчик для циферблата
+    int8_t cnt18old = -1;
     uint8_t canDoOld = 0;  // для определения момента включения
 
 	/* Enable SPI, Master, set clock rate fck/2 (4 MHz) */
@@ -451,6 +451,7 @@ int main(void)
     /*TIMSK1 = (1 << TOIE1);*/
 
 	uint8_t encoderState = 0;
+	int8_t encoderCounter = 0;
 
 	for (;;)
 	{
@@ -478,13 +479,13 @@ int main(void)
                 } else {                    // в противном случае
                     if ((bt_now & BT_1) == 0) {  // верхняя кнопка увеличивает счет нажатий
                         cnt_bt++;
-                        cnt20++;
-                        if (cnt20 >= 20) {cnt20 = 0;}
+                        cnt18++;
+                        if (cnt18 >= 18) {cnt18 = 0;}
                     }
                     if ((bt_now & BT_2) == 0) {  // а вторая сверху - уменьшает
                         cnt_bt--;
-                        cnt20--;
-                        if (cnt20 < 0) {cnt20 = 19;}
+                        cnt18--;
+                        if (cnt18 < 0) {cnt18 = 17;}
                     }
                 }
 				if ((bt_now & BT_3) == 0) {
@@ -497,7 +498,62 @@ int main(void)
 				encoderState <<= 2;
 				encoderState |= nowEnc;
 				encoderState &= 0x0F;
-				data_device = encoderState;
+				/*data_device = encoderState;*/
+
+				switch (encoderState) {
+					case 0x00: /* - */
+						/*encoderCounter--;*/
+						break;
+					case 0x01:
+						encoderCounter--;
+						break;
+					case 0x03: /* err */
+						/*encoderCounter++;*/
+						break;
+					case 0x02:
+						encoderCounter++;
+						break;
+					case 0x06: /* err */
+						/*encoderCounter++;*/
+						break;
+					case 0x07:
+						encoderCounter--;
+						break;
+					case 0x05: /* - */
+						/*encoderCounter++;*/
+						break;
+					case 0x04:
+						encoderCounter++;
+						break;
+					case 0x0c: /* err */
+						/*encoderCounter++;*/
+						break;
+					case 0x0d:
+						encoderCounter++;
+						break;
+					case 0x0f: /* - */
+						/*encoderCounter++;*/
+						break;
+					case 0x0e:
+						encoderCounter--;
+						break;
+					case 0x0a: /* - */
+						/*encoderCounter++;*/
+						break;
+					case 0x0b:
+						encoderCounter++;
+						break;
+					case 0x09: /* err */
+						/*encoderCounter++;*/
+						break;
+					case 0x08:
+						encoderCounter--;
+						break;
+				}
+				if (encoderCounter >= (18 * 2)) {encoderCounter = 0;}
+				if (encoderCounter < 0) {encoderCounter = (18 * 2 - 1);}
+				data_device = encoderCounter >> 1;
+				cnt18 = encoderCounter >> 1;
 
                 bt_old = bt_now;            // и сохраняем состояние порта для следующей проверки
             }
@@ -509,9 +565,9 @@ int main(void)
                     mode_out = 2;
                     scrClear();
                 }
-                if (cnt20 != cnt20old) {
-                    cnt20old = cnt20;
-                    uint32_t addr = cnt20 << 7;
+                if (cnt18 != cnt18old) {
+                    cnt18old = cnt18;
+                    uint32_t addr = cnt18 << 7;
                     uint32_t size = 2;
                     uint8_t forScreen[2];
 					bool canOut = false;
@@ -560,7 +616,7 @@ int main(void)
                     break;
                 case 2 :
                     /*PORTD = cnt_bt;  // счетчик нажатий*/
-                    PORTD = cnt20;
+                    PORTD = cnt18;
                     break;
                 default:
                     PORTD = data_PC;
