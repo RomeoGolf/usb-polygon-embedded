@@ -49,33 +49,42 @@
         #include "fake_fs.h"
 
     /* Macros: */
-        /** Macro to set the current SCSI sense data to the given key, additional sense code and additional sense qualifier. This
-         *  is for convenience, as it allows for all three sense values (returned upon request to the host to give information about
-         *  the last command failure) in a quick and easy manner.
+        /** Macro to set the current SCSI sense data to the given key,
+         * additional sense code and additional sense qualifier. This
+         * is for convenience, as it allows for all three sense values
+         * (returned upon request to the host to give information about
+         * the last command failure) in a quick and easy manner.
          *
          *  \param[in] Key    New SCSI sense key to set the sense code to
-         *  \param[in] Acode  New SCSI additional sense key to set the additional sense code to
-         *  \param[in] Aqual  New SCSI additional sense key qualifier to set the additional sense qualifier code to
+         *  \param[in] Acode  New SCSI additional sense key to set the
+         *  additional sense code to
+         *  \param[in] Aqual  New SCSI additional sense key qualifier to
+         *  set the additional sense qualifier code to
          */
         #define SCSI_SET_SENSE(Key, Acode, Aqual)  do { SenseData.SenseKey                 = (Key);   \
                                                         SenseData.AdditionalSenseCode      = (Acode); \
                                                         SenseData.AdditionalSenseQualifier = (Aqual); } while (0)
 
-        /** Macro for the \ref SCSI_Command_ReadWrite_10() function, to indicate that data is to be read from the storage medium. */
+        /** Macro for the \ref SCSI_Command_ReadWrite_10() function,
+         * to indicate that data is to be read from the storage medium. */
         #define DATA_READ           true
 
-        /** Macro for the \ref SCSI_Command_ReadWrite_10() function, to indicate that data is to be written to the storage medium. */
+        /** Macro for the \ref SCSI_Command_ReadWrite_10() function,
+         * to indicate that data is to be written to the storage medium. */
         #define DATA_WRITE          false
 
-        /** Value for the DeviceType entry in the SCSI_Inquiry_Response_t enum, indicating a Block Media device. */
+        /** Value for the DeviceType entry in the SCSI_Inquiry_Response_t
+         * enum, indicating a Block Media device. */
         #define DEVICE_TYPE_BLOCK   0x00
 
-        /** Value for the DeviceType entry in the SCSI_Inquiry_Response_t enum, indicating a CD-ROM device. */
+        /** Value for the DeviceType entry in the SCSI_Inquiry_Response_t
+         * enum, indicating a CD-ROM device. */
         #define DEVICE_TYPE_CDROM   0x05
 
     /* Type Defines: */
-        /** Type define for a SCSI response structure to a SCSI INQUIRY command. For details of the
-         *  structure contents, refer to the SCSI specifications.
+        /** Type define for a SCSI response structure to a SCSI INQUIRY
+         * command. For details of the structure contents, refer to
+         * the SCSI specifications.
          */
         typedef struct
         {
@@ -110,8 +119,9 @@
             uint8_t  RevisionID[4];
         } MS_SCSI_Inquiry_Response_t;
 
-        /** Type define for a SCSI sense structure to a SCSI REQUEST SENSE command. For details of the
-         *  structure contents, refer to the SCSI specifications.
+        /** Type define for a SCSI sense structure to
+         * a SCSI REQUEST SENSE command. For details of the
+         * structure contents, refer to the SCSI specifications.
          */
         typedef struct
         {
