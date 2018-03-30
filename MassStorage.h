@@ -36,57 +36,53 @@
 #ifndef _MASS_STORAGE_H_
 #define _MASS_STORAGE_H_
 
-	/* Includes: */
-		#include <avr/io.h>
-		#include <avr/wdt.h>
-		#include <avr/power.h>
-		#include <avr/interrupt.h>
+    /* Includes: */
+        #include <avr/io.h>
+        #include <avr/wdt.h>
+        #include <avr/power.h>
+        #include <avr/interrupt.h>
 
-		#include "Descriptors.h"
+        #include "Descriptors.h"
 
-		#include "Lib/SCSI.h"
-//		#include "Lib/DataflashManager.h"
-		#include "Config/AppConfig.h"
+        #include "Lib/SCSI.h"
+        #include "Config/AppConfig.h"
 
-		#include <LUFA/Drivers/USB/USB.h>
-//		#include <LUFA/Drivers/Board/LEDs.h>
-//		#include <LUFA/Drivers/Board/Dataflash.h>
-//		#include <LUFA/Platform/Platform.h>
+        #include <LUFA/Drivers/USB/USB.h>
 
-	/* Macros: */
-		/** LED mask for the library LED driver, to indicate that the USB interface is not ready. */
-		#define LEDMASK_USB_NOTREADY       LEDS_LED1
+    /* Macros: */
+        /** LED mask for the library LED driver, to indicate that the USB interface is not ready. */
+        #define LEDMASK_USB_NOTREADY       LEDS_LED1
 
-		/** LED mask for the library LED driver, to indicate that the USB interface is enumerating. */
-		#define LEDMASK_USB_ENUMERATING   (LEDS_LED2 | LEDS_LED3)
+        /** LED mask for the library LED driver, to indicate that the USB interface is enumerating. */
+        #define LEDMASK_USB_ENUMERATING   (LEDS_LED2 | LEDS_LED3)
 
-		/** LED mask for the library LED driver, to indicate that the USB interface is ready. */
-		#define LEDMASK_USB_READY         (LEDS_LED2 | LEDS_LED4)
+        /** LED mask for the library LED driver, to indicate that the USB interface is ready. */
+        #define LEDMASK_USB_READY         (LEDS_LED2 | LEDS_LED4)
 
-		/** LED mask for the library LED driver, to indicate that an error has occurred in the USB interface. */
-		#define LEDMASK_USB_ERROR         (LEDS_LED1 | LEDS_LED3)
+        /** LED mask for the library LED driver, to indicate that an error has occurred in the USB interface. */
+        #define LEDMASK_USB_ERROR         (LEDS_LED1 | LEDS_LED3)
 
-		/** LED mask for the library LED driver, to indicate that the USB interface is busy. */
-		#define LEDMASK_USB_BUSY           LEDS_LED2
+        /** LED mask for the library LED driver, to indicate that the USB interface is busy. */
+        #define LEDMASK_USB_BUSY           LEDS_LED2
 
-	/* Global Variables: */
-		extern MS_CommandBlockWrapper_t  CommandBlock;
-		extern MS_CommandStatusWrapper_t CommandStatus;
-		extern volatile bool             IsMassStoreReset;
+    /* Global Variables: */
+        extern MS_CommandBlockWrapper_t  CommandBlock;
+        extern MS_CommandStatusWrapper_t CommandStatus;
+        extern volatile bool             IsMassStoreReset;
 
-	/* Function Prototypes: */
-		void SetupHardware(void);
-		void MassStorage_Task(void);
+    /* Function Prototypes: */
+        void SetupHardware(void);
+        void MassStorage_Task(void);
 
-		void EVENT_USB_Device_Connect(void);
-		void EVENT_USB_Device_Disconnect(void);
-		void EVENT_USB_Device_ConfigurationChanged(void);
-		void EVENT_USB_Device_ControlRequest(void);
+        void EVENT_USB_Device_Connect(void);
+        void EVENT_USB_Device_Disconnect(void);
+        void EVENT_USB_Device_ConfigurationChanged(void);
+        void EVENT_USB_Device_ControlRequest(void);
 
-		#if defined(INCLUDE_FROM_MASSSTORAGE_C)
-			static bool ReadInCommandBlock(void);
-			static void ReturnCommandStatus(void);
-		#endif
+        #if defined(INCLUDE_FROM_MASSSTORAGE_C)
+            static bool ReadInCommandBlock(void);
+            static void ReturnCommandStatus(void);
+        #endif
 
 #endif
 
