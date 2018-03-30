@@ -208,7 +208,7 @@ void out8bit(uint8_t data8)
         while (!(SPSR & (1 << SPIF))) ; // wait for transmit
         PORTB |= BIT_SS;            // cs -> 1
     } else {
-        /**
+        /** закрыто в отладочных целях, так и оставлено за ненадобностью.
         PORTB &= ~BIT_SS;       // cs -> 0
         for (uint8_t i = 0; i < 8; i++){
             PORTB &= ~BIT_SCLK;     // sclk -> 0
