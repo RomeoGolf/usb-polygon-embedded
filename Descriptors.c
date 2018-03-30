@@ -30,22 +30,25 @@
 
 /** \file
  *
- *  USB Device Descriptors, for library use when in USB device mode. Descriptors are special
- *  computer-readable structures which the host requests upon device enumeration, to determine
+ *  USB Device Descriptors, for library use when in USB device mode.
+ *  Descriptors are special
+ *  computer-readable structures which the host requests upon device
+ *  enumeration, to determine
  *  the device's capabilities and functions.
  */
 
 #include "Descriptors.h"
 
 
-/** Device descriptor structure. This descriptor, located in FLASH memory, describes the overall
- *  device characteristics, including the supported USB version, control endpoint size and the
- *  number of device configurations. The descriptor is read out by the USB host when the enumeration
- *  process begins.
+/** Device descriptor structure. This descriptor, located in FLASH memory,
+ * describes the overall device characteristics, including the supported
+ * USB version, control endpoint size and the number of device configurations.
+ * The descriptor is read out by the USB host when the enumeration
+ * process begins.
  */
 const USB_Descriptor_Device_t PROGMEM DeviceDescriptor =
 {
-    .Header                 = {.Size = sizeof(USB_Descriptor_Device_t), .Type = DTYPE_Device},
+    .Header  = {.Size = sizeof(USB_Descriptor_Device_t), .Type = DTYPE_Device},
 
     .USBSpecification       = VERSION_BCD(1,1,0),
     .Class                  = USB_CSCP_NoDeviceClass,
@@ -65,16 +68,19 @@ const USB_Descriptor_Device_t PROGMEM DeviceDescriptor =
     .NumberOfConfigurations = FIXED_NUM_CONFIGURATIONS
 };
 
-/** Configuration descriptor structure. This descriptor, located in FLASH memory, describes the usage
- *  of the device in one of its supported configurations, including information about any device interfaces
- *  and endpoints. The descriptor is read out by the USB host during the enumeration process when selecting
- *  a configuration so that the host may correctly communicate with the USB device.
+/** Configuration descriptor structure. This descriptor, located in
+ * FLASH memory, describes the usage of the device in one of its supported
+ * configurations, including information about any device interfaces
+ * and endpoints. The descriptor is read out by the USB host during the
+ * enumeration process when selecting a configuration so that the host
+ * may correctly communicate with the USB device.
  */
 const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 {
     .Config =
         {
-            .Header                 = {.Size = sizeof(USB_Descriptor_Configuration_Header_t), .Type = DTYPE_Configuration},
+            .Header = {.Size = sizeof(USB_Descriptor_Configuration_Header_t),
+                .Type = DTYPE_Configuration},
 
             .TotalConfigurationSize = sizeof(USB_Descriptor_Configuration_t),
             .TotalInterfaces        = 1,
@@ -89,7 +95,8 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 
     .MS_Interface =
         {
-            .Header                 = {.Size = sizeof(USB_Descriptor_Interface_t), .Type = DTYPE_Interface},
+            .Header = {.Size = sizeof(USB_Descriptor_Interface_t),
+                .Type = DTYPE_Interface},
 
             .InterfaceNumber        = INTERFACE_ID_MassStorage,
             .AlternateSetting       = 0,
@@ -105,48 +112,64 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 
     .MS_DataInEndpoint =
         {
-            .Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
+            .Header = {.Size = sizeof(USB_Descriptor_Endpoint_t),
+                .Type = DTYPE_Endpoint},
 
             .EndpointAddress        = MASS_STORAGE_IN_EPADDR,
-            .Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
+            .Attributes             = (EP_TYPE_BULK
+                                     | ENDPOINT_ATTR_NO_SYNC
+                                     | ENDPOINT_USAGE_DATA),
             .EndpointSize           = MASS_STORAGE_IO_EPSIZE,
             .PollingIntervalMS      = 0x05
         },
 
     .MS_DataOutEndpoint =
         {
-            .Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
+            .Header = {.Size = sizeof(USB_Descriptor_Endpoint_t),
+                .Type = DTYPE_Endpoint},
 
             .EndpointAddress        = MASS_STORAGE_OUT_EPADDR,
-            .Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
+            .Attributes             = (EP_TYPE_BULK 
+                                     | ENDPOINT_ATTR_NO_SYNC 
+                                     | ENDPOINT_USAGE_DATA),
             .EndpointSize           = MASS_STORAGE_IO_EPSIZE,
             .PollingIntervalMS      = 0x05
         }
 };
 
-/** Language descriptor structure. This descriptor, located in FLASH memory, is returned when the host requests
- *  the string descriptor with index 0 (the first index). It is actually an array of 16-bit integers, which indicate
- *  via the language ID table available at USB.org what languages the device supports for its string descriptors.
+/** Language descriptor structure. This descriptor, located in
+ * FLASH memory, is returned when the host requests the string
+ * descriptor with index 0 (the first index). It is actually an
+ * array of 16-bit integers, which indicate via the language ID
+ * table available at USB.org what languages the device supports
+ * for its string descriptors.
  */
-const USB_Descriptor_String_t PROGMEM LanguageString = USB_STRING_DESCRIPTOR_ARRAY(LANGUAGE_ID_ENG);
+const USB_Descriptor_String_t PROGMEM LanguageString =
+                USB_STRING_DESCRIPTOR_ARRAY(LANGUAGE_ID_ENG);
 
-/** Manufacturer descriptor string. This is a Unicode string containing the manufacturer's details in human readable
- *  form, and is read out upon request by the host when the appropriate string ID is requested, listed in the Device
- *  Descriptor.
+/** Manufacturer descriptor string. This is a Unicode string containing
+ * the manufacturer's details in human readable form, and is read out
+ * upon request by the host when the appropriate string ID is requested,
+ * listed in the Device Descriptor.
  */
-const USB_Descriptor_String_t PROGMEM ManufacturerString = USB_STRING_DESCRIPTOR(L"Dean Camera");
+const USB_Descriptor_String_t PROGMEM ManufacturerString =
+        USB_STRING_DESCRIPTOR(L"Dean Camera");
 
-/** Product descriptor string. This is a Unicode string containing the product's details in human readable form,
- *  and is read out upon request by the host when the appropriate string ID is requested, listed in the Device
- *  Descriptor.
+/** Product descriptor string. This is a Unicode string containing
+ * the product's details in human readable form, and is read out upon
+ * request by the host when the appropriate string ID is requested,
+ * listed in the Device Descriptor.
  */
-const USB_Descriptor_String_t PROGMEM ProductString = USB_STRING_DESCRIPTOR(L"LUFA Mass Storage Demo");
+const USB_Descriptor_String_t PROGMEM ProductString =
+        USB_STRING_DESCRIPTOR(L"LUFA Mass Storage Demo");
 
-/** This function is called by the library when in device mode, and must be overridden (see library "USB Descriptors"
- *  documentation) by the application code so that the address and size of a requested descriptor can be given
- *  to the USB library. When the device receives a Get Descriptor request on the control endpoint, this function
- *  is called so that the descriptor details can be passed back and the appropriate descriptor sent back to the
- *  USB host.
+/** This function is called by the library when in device mode,
+ * and must be overridden (see library "USB Descriptors" documentation)
+ * by the application code so that the address and size of a requested
+ * descriptor can be given to the USB library. When the device receives
+ * a Get Descriptor request on the control endpoint, this function
+ * is called so that the descriptor details can be passed back and
+ * the appropriate descriptor sent back to the USB host.
  */
 uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
                                     const uint8_t wIndex,
@@ -184,10 +207,8 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
                     Size    = pgm_read_byte(&ProductString.Header.Size);
                     break;
             }
-
             break;
     }
-
     *DescriptorAddress = Address;
     return Size;
 }

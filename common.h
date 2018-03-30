@@ -44,13 +44,13 @@
 #define MMC_CMD_SD_SEND_OP_COND MMC_COMMANDS_BASE + 41        // ACMD41
 #define MMC_CMD_SD_SEND_SCR     MMC_COMMANDS_BASE + 51        // ACMD51
 
-//=====================================================================================//
-// MMC data tokens                                                                     //
-//=====================================================================================//
+//=========================================================================//
+// MMC data tokens
+//=========================================================================//
 #define MMC_START_TOKEN_SINGLE (unsigned char) 0xFE
 #define MMC_START_TOKEN_MULTI  (unsigned char) 0xFC
 #define MMC_STOP_TRAN_TOKEN    (unsigned char) 0xFD
-//=====================================================================================//
+//=========================================================================//
 
 enum ResponceType {R1, R2, R3, R7};
 
@@ -64,10 +64,13 @@ enum ResponceType {R1, R2, R3, R7};
 /* functions */
     extern void out8bit(uint8_t data8);
     extern void scrClear(void);
-    extern bool SdReadDataBlock(uint32_t address, uint32_t size, uint8_t * buffer);
-    extern bool SdWriteDataBlock(uint32_t address, uint32_t size, uint8_t * buffer);
+    extern bool SdReadDataBlock(uint32_t address, uint32_t size,
+            uint8_t * buffer);
+    extern bool SdWriteDataBlock(uint32_t address, uint32_t size,
+            uint8_t * buffer);
     extern void SdOutByte(uint8_t data8);
     extern uint8_t SdInByte(void);
-    extern void SdSendCommand(uint8_t Index, uint32_t Argument, uint8_t Crc, enum ResponceType responceType, uint8_t *Responce);
+    extern void SdSendCommand(uint8_t Index, uint32_t Argument,
+            uint8_t Crc, enum ResponceType responceType, uint8_t *Responce);
 
 #endif // _COMMON_H_
