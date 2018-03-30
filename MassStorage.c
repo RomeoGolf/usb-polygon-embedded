@@ -28,12 +28,6 @@
   this software.
 */
 
-/** \file
- *
- *  Main source file for the Mass Storage demo. This file contains the main tasks of the demo and
- *  is responsible for the initial application hardware configuration.
- */
-
 #define  INCLUDE_FROM_MASSSTORAGE_C
 #include "MassStorage.h"
 #include "common.h"
@@ -63,14 +57,16 @@ uint8_t isSpiOn = 0;
 enum RegType {CID, CSD};
 uint8_t sdResponce[5];
 
-void SdOutByte(uint8_t data8) {
+void SdOutByte(uint8_t data8)
+{
     PORTB &= ~BIT_CS_SD;            // cs -> 0
     SPDR = data8;
     while (!(SPSR & (1 << SPIF))) ; // wait for transmit
     PORTB |= BIT_CS_SD;             // cs -> 1
 }
 
-uint8_t SdInByte(void) {
+uint8_t SdInByte(void)
+{
     PORTB &= ~BIT_CS_SD;            // cs -> 0
     SPDR = 0xFF;
     while (!(SPSR & (1 << SPIF))) ; // wait for transmit
@@ -78,7 +74,9 @@ uint8_t SdInByte(void) {
     return SPDR;
 }
 
-void SdSendCommand(uint8_t Index, uint32_t Argument, uint8_t Crc, enum ResponceType responceType, uint8_t *Responce) {
+void SdSendCommand(uint8_t Index, uint32_t Argument, uint8_t Crc,
+        enum ResponceType responceType, uint8_t *Responce)
+{
     SdOutByte(0xFF);
     SdOutByte(Index);
     SdOutByte((uint8_t)(Argument >> 24));
@@ -125,7 +123,7 @@ bool SdWaitForDataToken(void)
     }
 }
 
-bool SdReadReg(enum RegType regType, uint8_t * buffer)
+bool SdReadReg(enum RegType regType, uint8_t *buffer)
 {
     switch (regType) {
         case CID:
@@ -153,7 +151,7 @@ bool SdReadReg(enum RegType regType, uint8_t * buffer)
   }
 }
 
-bool SdReadDataBlock(uint32_t address, uint32_t size, uint8_t * buffer)
+bool SdReadDataBlock(uint32_t address, uint32_t size, uint8_t *buffer)
 {
     SdSendCommand(MMC_SET_BLOCK_LEN, size, 1, R1, sdResponce);
     SdSendCommand(MMC_READ_SINGLE_BLOCK, address, 1, R1, sdResponce);
@@ -174,7 +172,7 @@ bool SdReadDataBlock(uint32_t address, uint32_t size, uint8_t * buffer)
   }
 }
 
-bool SdWriteDataBlock(uint32_t address, uint32_t size, uint8_t * buffer)
+bool SdWriteDataBlock(uint32_t address, uint32_t size, uint8_t *buffer)
 {
     SdSendCommand(MMC_SET_BLOCK_LEN, size, 1, R1, sdResponce);
     SdSendCommand(MMC_WRITE_SINGLE_BLOCK, address, 1, R1, sdResponce);
@@ -202,7 +200,8 @@ bool SdWriteDataBlock(uint32_t address, uint32_t size, uint8_t * buffer)
 
 /* ---------------------------- */
 /* for work with the LCD screen */
-void out8bit(uint8_t data8) {
+void out8bit(uint8_t data8)
+{
     if (isSpiOn == 1) {
         PORTB &= ~BIT_SS;       // cs -> 0
         SPDR = data8;
@@ -239,9 +238,8 @@ void scrClear(void)
 }
 /* ---------------------------- */
 
-/** Main program entry point. This routine configures the hardware required by the application, then
- *  enters a loop to run the application tasks in sequence.
- */
+/*****************************************************/
+/*****************************************************/
 int main(void)
 {
     SetupHardware();
@@ -255,7 +253,6 @@ int main(void)
     /* SPI : LCD screen & SD card */
     DDRB = 0xFF & ~BIT_MISO;     // конфигурация порта на ввод/вывод
     PORTB = 0x00 | BIT_CS_SD;    // начальное значение
-    /*PORTB |= BIT_SS   // SC -> 1, not active*/
 
     unsigned char cnt_bt = 0;     // счетчик нажатий на кнопки
     unsigned char mode_out = 0;   // режим вывода
@@ -279,21 +276,14 @@ int main(void)
     /* screen */
 
     /*PORTB |= BIT_RES;*/
-    /*_delay_ms(10);*/
     PORTB &= ~BIT_RES;
     _delay_ms(10);
     PORTB |= BIT_RES;
 
-    //PORTB &= ~BIT_SS;     // cs -> 0
-
     // screen init
-    PORTB &= ~BIT_DC;   // d/c -> 0
+    PORTB &= ~BIT_DC;       // d/c -> 0
     out8bit(0x21);
-    /*out8bit(0x80 + 56);*/
-    /*out8bit(0x80 | 0x10);*/
     out8bit(0x80 | 29);
-    /*out8bit(0x04);*/
-    /*out8bit(0x13);*/
     out8bit(0x12);
     out8bit(0x20);
     out8bit(0x0c);
@@ -301,7 +291,7 @@ int main(void)
     scrClear();
 
     // line on the top
-    PORTB &= ~BIT_DC;   // d/c -> 0
+    PORTB &= ~BIT_DC;       // d/c -> 0
     out8bit(0x40);
     out8bit(0x80);
     PORTB |= BIT_DC;        // d/c -> 1
@@ -310,7 +300,7 @@ int main(void)
     }
 
     // line on the bottom
-    PORTB &= ~BIT_DC;   // d/c -> 0
+    PORTB &= ~BIT_DC;       // d/c -> 0
     out8bit(0x47);
     out8bit(0x80);
     PORTB |= BIT_DC;        // d/c -> 1
@@ -319,7 +309,7 @@ int main(void)
     }
 
     // position set
-    PORTB &= ~BIT_DC;   // d/c -> 0
+    PORTB &= ~BIT_DC;       // d/c -> 0
     out8bit(0x43);
     out8bit(0x80 | 0x28);
 
@@ -398,15 +388,11 @@ int main(void)
         PORTD = 0xAA;
     }
 
-    /*for(;;){}*/
-
     // ********************************
-
     GlobalInterruptEnable();
 
     for(int i = 0; i < 128; i++) {
         data[i] = (i + 5);
-        /*data[i] = 0x0F;*/
     }
 
     /*SdSendCommand(MMC_SET_BLOCK_LEN, 128, 1, R1, sdResponce);*/
@@ -424,7 +410,8 @@ int main(void)
 
     /* запуск таймера 0 на период ~0.01 с */
     /* (защита от дребезга) */
-    TCCR0B = 4;  /* 1 тик = 0.000032 с ; 3 -> 0,000008; 2 -> 0,000001; 1 -> 0,000000125  */
+    /* 1 тик = 0.000032 с ; 3 -> 0,000008; 2 -> 0,000001; 1 -> 0,000000125  */
+    TCCR0B = 4;
     TCNT0 = 0;   /* 256 раз ~ 0.008192 c  */
 
     /* запуск таймера 1 на период 0.5 с */
@@ -446,7 +433,7 @@ int main(void)
         if ((TIFR1 & 1) == 1) {
             TCNT1 = 65536 - 15625;  /* перезапуск таймера 1 */
             TIFR1 = 1;              /* сброс флага таймера 1 */
-            cnt++;                  /* инкремент контрольного счетчика по таймеру */
+            cnt++;      /* инкремент контрольного счетчика по таймеру */
         }
 
         /* обработка действий по срабатыванию таймера 0 */
@@ -457,11 +444,15 @@ int main(void)
             /* cnt++;*/     // инкремент счетчика - чтобы что-то изменялось
             bt_now = PINC;                  // считывание порта с кнопками
             if (bt_now != bt_old) {         // если состояние порта изменилось
-                if ((bt_now & (BT_1 | BT_2)) == 0) { // если нажаты сразу две верхние кнопки на разрядах 3 и 4
-                    mode_out++;             // циклически изменить режим отображения,
-                    mode_out = mode_out & 3;// которых всего 4 - 0, 1, 2 и 3 (2 разряда по маске)
+                // если нажаты сразу две верхние кнопки на разрядах 3 и 4
+                if ((bt_now & (BT_1 | BT_2)) == 0) {
+                    // циклически изменить режим отображения,
+                    mode_out++;
+                    // которых всего 4 - 0, 1, 2 и 3 (2 разряда по маске)
+                    mode_out = mode_out & 3;
                 } else {                    // в противном случае
-                    if ((bt_now & BT_1) == 0) {  // верхняя кнопка увеличивает счет нажатий
+                    // верхняя кнопка увеличивает счет нажатий
+                    if ((bt_now & BT_1) == 0) {
                         cnt_bt++;
                         cnt18++;
                         if (cnt18 >= 18) {cnt18 = 0;}
@@ -482,7 +473,6 @@ int main(void)
                 encoderState <<= 2;
                 encoderState |= nowEnc;
                 encoderState &= 0x0F;
-                /*data_device = encoderState;*/
 
                 switch (encoderState) {
                     case 0x00: /* - */
@@ -531,10 +521,12 @@ int main(void)
                 data_device = encoderCounter >> 1;
                 cnt18 = encoderCounter >> 1;
 
-                bt_old = bt_now;            // и сохраняем состояние порта для следующей проверки
+                // и сохраняем состояние порта для следующей проверки
+                bt_old = bt_now;
             }
 
-            if (canDo == 1) { /* нет защиты от многократного срабатывания */
+            /* TODO: нет защиты от многократного срабатывания */
+            if (canDo == 1) {
                 if (canDoOld == 0) {
                     canDoOld = 1;
                     mode_out_old = mode_out;
@@ -579,19 +571,14 @@ int main(void)
                 mode_out = mode_out_old;
             }
 
-            /*data_device = cnt_bt;*/
-
             switch (mode_out) {
                 case 0 :
                     PORTD = cnt;    // просто счетчик
                     break;
                 case 1 :
-/*                     PORTD = bt_now;            // состояние кнопок*/
-                    /*PORTD = canDo;*/
                     PORTD = data_device;
                     break;
                 case 2 :
-                    /*PORTD = cnt_bt;  // счетчик нажатий*/
                     PORTD = cnt18;
                     break;
                 default:
@@ -619,11 +606,13 @@ void SetupHardware(void)
     /* Disable clock division */
     clock_prescale_set(clock_div_1);
 #elif (ARCH == ARCH_XMEGA)
-    /* Start the PLL to multiply the 2MHz RC oscillator to 32MHz and switch the CPU core to run from it */
+    /* Start the PLL to multiply the 2MHz RC oscillator to 32MHz and
+     * switch the CPU core to run from it */
     XMEGACLK_StartPLL(CLOCK_SRC_INT_RC2MHZ, 2000000, F_CPU);
     XMEGACLK_SetCPUClockSource(CLOCK_SRC_PLL);
 
-    /* Start the 32MHz internal RC oscillator and start the DFLL to increase it to 48MHz using the USB SOF as a reference */
+    /* Start the 32MHz internal RC oscillator and start the DFLL to
+     * increase it to 48MHz using the USB SOF as a reference */
     XMEGACLK_StartInternalOscillator(CLOCK_SRC_INT_RC32MHZ);
     XMEGACLK_StartDFLL(CLOCK_SRC_INT_RC32MHZ, DFLL_REF_INT_USBSOF, F_USB);
 
@@ -635,42 +624,41 @@ void SetupHardware(void)
     fakeFsInit();
 }
 
-/** Event handler for the USB_Connect event. This indicates that the device is enumerating via the status LEDs. */
+/** Event handler for the USB_Connect event. This indicates that the
+ * device is enumerating via the status LEDs. */
 void EVENT_USB_Device_Connect(void)
 {
-    /* Indicate USB enumerating */
-/*  LEDs_SetAllLEDs(LEDMASK_USB_ENUMERATING);*/
-
     /* Reset the MSReset flag upon connection */
     IsMassStoreReset = false;
 }
 
-/** Event handler for the USB_Disconnect event. This indicates that the device is no longer connected to a host via
+/** Event handler for the USB_Disconnect event. This indicates that
+ * the device is no longer connected to a host via
  *  the status LEDs and stops the Mass Storage management task.
  */
 void EVENT_USB_Device_Disconnect(void)
 {
-    /* Indicate USB not ready */
-/*  LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);*/
 }
 
-/** Event handler for the USB_ConfigurationChanged event. This is fired when the host set the current configuration
- *  of the USB device after enumeration - the device endpoints are configured and the Mass Storage management task started.
+/** Event handler for the USB_ConfigurationChanged event. This is fired
+ * when the host set the current configuration
+ *  of the USB device after enumeration - the device endpoints are configured
+ *  and the Mass Storage management task started.
  */
 void EVENT_USB_Device_ConfigurationChanged(void)
 {
     bool ConfigSuccess = true;
 
     /* Setup Mass Storage Data Endpoints */
-    ConfigSuccess &= Endpoint_ConfigureEndpoint(MASS_STORAGE_IN_EPADDR,  EP_TYPE_BULK, MASS_STORAGE_IO_EPSIZE, 1);
-    ConfigSuccess &= Endpoint_ConfigureEndpoint(MASS_STORAGE_OUT_EPADDR, EP_TYPE_BULK, MASS_STORAGE_IO_EPSIZE, 1);
-
-    /* Indicate endpoint configuration success or failure */
-/*  LEDs_SetAllLEDs(ConfigSuccess ? LEDMASK_USB_READY : LEDMASK_USB_ERROR);*/
+    ConfigSuccess &= Endpoint_ConfigureEndpoint(MASS_STORAGE_IN_EPADDR,
+            EP_TYPE_BULK, MASS_STORAGE_IO_EPSIZE, 1);
+    ConfigSuccess &= Endpoint_ConfigureEndpoint(MASS_STORAGE_OUT_EPADDR,
+            EP_TYPE_BULK, MASS_STORAGE_IO_EPSIZE, 1);
 }
 
-/** Event handler for the USB_ControlRequest event. This is used to catch and process control requests sent to
- *  the device from the USB host before passing along unhandled control requests to the library for processing
+/** Event handler for the USB_ControlRequest event. This is used to catch
+ * and process control requests sent to the device from the USB host before
+ * passing along unhandled control requests to the library for processing
  *  internally.
  */
 void EVENT_USB_Device_ControlRequest(void)
@@ -679,7 +667,9 @@ void EVENT_USB_Device_ControlRequest(void)
     switch (USB_ControlRequest.bRequest)
     {
         case MS_REQ_MassStorageReset:
-            if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
+            if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE
+                        | REQTYPE_CLASS
+                        | REQREC_INTERFACE))
             {
                 Endpoint_ClearSETUP();
                 Endpoint_ClearStatusStage();
@@ -690,11 +680,14 @@ void EVENT_USB_Device_ControlRequest(void)
 
             break;
         case MS_REQ_GetMaxLUN:
-            if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE))
+            if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST
+                        | REQTYPE_CLASS
+                        | REQREC_INTERFACE))
             {
                 Endpoint_ClearSETUP();
 
-                /* Indicate to the host the number of supported LUNs (virtual disks) on the device */
+                /* Indicate to the host the number of supported LUNs (virtual
+                 * disks) on the device */
                 Endpoint_Write_8(TOTAL_LUNS - 1);
 
                 Endpoint_ClearIN();
@@ -705,8 +698,10 @@ void EVENT_USB_Device_ControlRequest(void)
     }
 }
 
-/** Task to manage the Mass Storage interface, reading in Command Block Wrappers from the host, processing the SCSI commands they
- *  contain, and returning Command Status Wrappers back to the host to indicate the success or failure of the last issued command.
+/** Task to manage the Mass Storage interface, reading in Command Block
+ * Wrappers from the host, processing the SCSI commands they
+ * contain, and returning Command Status Wrappers back to the host
+ * to indicate the success or failure of the last issued command.
  */
 void MassStorage_Task(void)
 {
@@ -717,15 +712,14 @@ void MassStorage_Task(void)
     /* Process sent command block from the host if one has been sent */
     if (ReadInCommandBlock())
     {
-        /* Indicate busy */
-/*      LEDs_SetAllLEDs(LEDMASK_USB_BUSY);*/
-
-        /* Check direction of command, select Data IN endpoint if data is from the device */
+        /* Check direction of command, select Data IN endpoint if data
+         * is from the device */
         if (CommandBlock.Flags & MS_COMMAND_DIR_DATA_IN)
           Endpoint_SelectEndpoint(MASS_STORAGE_IN_EPADDR);
 
         /* Decode the received SCSI command, set returned status code */
-        CommandStatus.Status = SCSI_DecodeSCSICommand() ? MS_SCSI_COMMAND_Pass : MS_SCSI_COMMAND_Fail;
+        CommandStatus.Status = SCSI_DecodeSCSICommand() ? MS_SCSI_COMMAND_Pass
+            : MS_SCSI_COMMAND_Fail;
 
         /* Load in the CBW tag into the CSW to link them together */
         CommandStatus.Tag = CommandBlock.Tag;
@@ -733,15 +727,15 @@ void MassStorage_Task(void)
         /* Load in the data residue counter into the CSW */
         CommandStatus.DataTransferResidue = CommandBlock.DataTransferLength;
 
-        /* Stall the selected data pipe if command failed (if data is still to be transferred) */
-        if ((CommandStatus.Status == MS_SCSI_COMMAND_Fail) && (CommandStatus.DataTransferResidue))
+        /* Stall the selected data pipe if command failed (if data is still
+         * to be transferred) */
+        if ((CommandStatus.Status == MS_SCSI_COMMAND_Fail)
+         && (CommandStatus.DataTransferResidue))
           Endpoint_StallTransaction();
 
         /* Return command status block to the host */
         ReturnCommandStatus();
 
-        /* Indicate ready */
-/*      LEDs_SetAllLEDs(LEDMASK_USB_READY);*/
     }
 
     /* Check if a Mass Storage Reset occurred */
@@ -763,10 +757,13 @@ void MassStorage_Task(void)
     }
 }
 
-/** Function to read in a command block from the host, via the bulk data OUT endpoint. This function reads in the next command block
- *  if one has been issued, and performs validation to ensure that the block command is valid.
+/** Function to read in a command block from the host, via the bulk data
+ * OUT endpoint. This function reads in the next command block
+ * if one has been issued, and performs validation to ensure that
+ * the block command is valid.
  *
- *  \return Boolean \c true if a valid command block has been read in from the endpoint, \c false otherwise
+ *  \return Boolean \c true if a valid command block has been read in
+ *  from the endpoint, \c false otherwise
  */
 static bool ReadInCommandBlock(void)
 {
@@ -781,8 +778,9 @@ static bool ReadInCommandBlock(void)
 
     /* Read in command block header */
     BytesTransferred = 0;
-    while (Endpoint_Read_Stream_LE(&CommandBlock, (sizeof(CommandBlock) - sizeof(CommandBlock.SCSICommandData)),
-                                   &BytesTransferred) == ENDPOINT_RWSTREAM_IncompleteTransfer)
+    while (Endpoint_Read_Stream_LE(&CommandBlock, (sizeof(CommandBlock)
+                    - sizeof(CommandBlock.SCSICommandData)), &BytesTransferred)
+            == ENDPOINT_RWSTREAM_IncompleteTransfer)
     {
         /* Check if the current command is being aborted by the host */
         if (IsMassStoreReset)
@@ -806,8 +804,9 @@ static bool ReadInCommandBlock(void)
 
     /* Read in command block command data */
     BytesTransferred = 0;
-    while (Endpoint_Read_Stream_LE(&CommandBlock.SCSICommandData, CommandBlock.SCSICommandLength,
-                                   &BytesTransferred) == ENDPOINT_RWSTREAM_IncompleteTransfer)
+    while (Endpoint_Read_Stream_LE(&CommandBlock.SCSICommandData,
+                CommandBlock.SCSICommandLength, &BytesTransferred)
+            == ENDPOINT_RWSTREAM_IncompleteTransfer)
     {
         /* Check if the current command is being aborted by the host */
         if (IsMassStoreReset)
@@ -820,8 +819,9 @@ static bool ReadInCommandBlock(void)
     return true;
 }
 
-/** Returns the filled Command Status Wrapper back to the host via the bulk data IN endpoint, waiting for the host to clear any
- *  stalled data endpoints as needed.
+/** Returns the filled Command Status Wrapper back to the host via
+ * the bulk data IN endpoint, waiting for the host to clear any
+ * stalled data endpoints as needed.
  */
 static void ReturnCommandStatus(void)
 {
@@ -830,7 +830,8 @@ static void ReturnCommandStatus(void)
     /* Select the Data Out endpoint */
     Endpoint_SelectEndpoint(MASS_STORAGE_OUT_EPADDR);
 
-    /* While data pipe is stalled, wait until the host issues a control request to clear the stall */
+    /* While data pipe is stalled, wait until the host issues a control
+     * request to clear the stall */
     while (Endpoint_IsStalled())
     {
         /* Check if the current command is being aborted by the host */
@@ -841,7 +842,8 @@ static void ReturnCommandStatus(void)
     /* Select the Data In endpoint */
     Endpoint_SelectEndpoint(MASS_STORAGE_IN_EPADDR);
 
-    /* While data pipe is stalled, wait until the host issues a control request to clear the stall */
+    /* While data pipe is stalled, wait until the host issues a control
+     * request to clear the stall */
     while (Endpoint_IsStalled())
     {
         /* Check if the current command is being aborted by the host */
@@ -852,7 +854,7 @@ static void ReturnCommandStatus(void)
     /* Write the CSW to the endpoint */
     BytesTransferred = 0;
     while (Endpoint_Write_Stream_LE(&CommandStatus, sizeof(CommandStatus),
-                                    &BytesTransferred) == ENDPOINT_RWSTREAM_IncompleteTransfer)
+                &BytesTransferred) == ENDPOINT_RWSTREAM_IncompleteTransfer)
     {
         /* Check if the current command is being aborted by the host */
         if (IsMassStoreReset)
