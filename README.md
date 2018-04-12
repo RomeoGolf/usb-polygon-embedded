@@ -24,7 +24,7 @@
 * [LUFA](http://www.fourwalledcubicle.com/LUFA.php)
 * Cygwin (для Windows)
 * Atmel AVR Toolchain [для Windows](http://www.atmel.com/tools/ATMELAVRTOOLCHAINFORWINDOWS.aspx) или [для Linux](http://www.atmel.com/tools/ATMELAVRTOOLCHAINFORLINUX.aspx)
-* [FLIP](http://www.atmel.com/ru/ru/tools/flip.aspx "FLIP") или [dfu-programmer](http://dfu-programmer.github.io/)
+* [FLIP](http://www.microchip.com/developmenttools/productdetails.aspx?partno=flip "FLIP") или [dfu-programmer](http://dfu-programmer.github.io/)
 
 ### Получение
 
